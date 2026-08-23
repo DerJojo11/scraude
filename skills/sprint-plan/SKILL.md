@@ -16,7 +16,10 @@ allowed-tools:
 3. Backlog leer? Dann das klar mitteilen — nichts zu planen, bis neue
    Anforderungen reinkommen (geklärter Punkt in Abschnitt 11 des Plans).
 4. Sprint-Vorschlag zusammenstellen: nach `prioritaet` sortiert (kleinere
-   Zahl = höher), Tickets mit offenen `blockiert_von` ausgeschlossen. Das
+   Zahl = höher). Ein blockiertes Ticket darf mit in den Sprint, solange
+   sein Blocker ebenfalls drin ist — Abhängigkeitsketten gehören zusammen
+   geplant. Blocker werden erst beim *Starten* geprüft (`next-ticket`
+   überspringt sie), nicht bei der Planung. Das
    älteste offene Backlog-Ticket explizit hervorheben, damit passiv
    entstandene Tickets nicht endlos liegen bleiben — reiner Hinweis, keine
    automatische Priorisierung.

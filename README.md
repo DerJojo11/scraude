@@ -12,6 +12,7 @@ scraude/
 │   └── marketplace.json     # Marketplace-Auflistung
 ├── skills/
 │   ├── board-management/    # Hintergrundwissen, lädt automatisch
+│   ├── intake/              # /intake — Aufgabe zerlegen + Sprint vorschlagen
 │   ├── board-init/          # /board-init
 │   ├── standup/             # /standup
 │   ├── board/               # /board
@@ -57,7 +58,8 @@ Plugin-Skills sind **immer mit dem Plugin-Namen qualifiziert**:
 
 ```
 /scraude:board-init
-/scraude:ticket-new "Erste Aufgabe"
+/scraude:intake "Beschreibung der Aufgabe oder Pfad zum Design"
+/scraude:ticket-new "Einzelnes Ticket"
 /scraude:sprint-plan
 /scraude:ticket-start
 /scraude:ticket-review
@@ -76,10 +78,11 @@ Stufe 1–6):
 - `board-store.js` — jede Zustandsänderung am Board hat einen benannten
   Befehl (`init`, `create-ticket`, `check-ready`, `next-ticket`,
   `start-ticket`, `resume-ticket`, `review-ticket`, `finish-ticket`,
-  `plan-sprint`, `close-sprint`, `retro`). Ohne Argument aufgerufen listet
+  `plan-sprint`, `plan-sprint`, `close-sprint`, `retro`, `create-tickets`). Ohne Argument
+  aufgerufen listet
   es alle Befehle auf.
 - `board-render.js` — Backlog, aktiver Sprint, Tickets außerhalb des Sprints
-- Alle 9 Command-Skills + `board-management`
+- Alle 10 Command-Skills + `board-management`
 - post-merge-Git-Hook, von `/board-init` installiert — verifiziert an einem
   echten Merge
 - `marketplace.json`

@@ -233,6 +233,63 @@ function createTicket(board, data) {
   return { id, ticket: board.tickets[id] };
 }
 
+/**
+ * Legt mehrere Tickets in einem Rutsch an und löst dabei Abhängigkeiten
+ * *zwischen* ihnen auf — das geht mit Einzelaufrufen nicht, weil die IDs
+ * erst beim Anlegen entstehen.
+ *
+ * Jeder Eintrag darf ein `ref` tragen (freier Name, nur für diesen Aufruf).
+ * In `blockiert_von` dürfen dann sowohl echte Ticket-IDs als auch diese
+ * refs stehen:
+ *
+ *   [ { "ref": "modell", "title": "Datenmodell", "groesse": "S" },
+ *     { "title": "API", "blockiert_von": ["modell"] } ]
+ *
+ * Die Reihenfolge im Array bestimmt die IDs, nicht die Priorität.
+ */
+function createTickets(board, entries) {
+  if (!Array.isArray(entries) || !entries.length) {
+    throw new Error('create-tickets braucht eine nicht-leere Liste.');
+  }
+
+  // Unbekannte refs früh melden, statt sie später still zu verschlucken
+  const refs = new Set(entries.filter((e) => e.ref).map((e) => e.ref));
+  entries.forEach((e) => {
+    (e.blockiert_von || []).forEach((b) => {
+      if (!refs.has(b) && !board.tickets[b]) {
+        throw new Error(
+          `blockiert_von verweist auf "${b}" — weder ein ref in diesem Aufruf noch ein existierendes Ticket.`
+        );
+      }
+    });
+  });
+
+  // Erst alle anlegen (ohne Blocker), damit die refs auf IDs abbildbar sind
+  const refToId = {};
+  const angelegt = [];
+  entries.forEach((entry) => {
+    const { ref, blockiert_von, ...rest } = entry;
+    const { id } = createTicket(board, { ...rest, blockiert_von: [] });
+    if (ref) refToId[ref] = id;
+    angelegt.push({ id, ref: ref || null, blockiert_von: blockiert_von || [] });
+  });
+
+  // Dann die Blocker nachtragen
+  angelegt.forEach(({ id, blockiert_von }) => {
+    if (!blockiert_von.length) return;
+    board.tickets[id].blockiert_von = blockiert_von.map((b) => refToId[b] || b);
+  });
+  writeBoard(board);
+
+  return angelegt.map(({ id }) => ({
+    id,
+    title: board.tickets[id].title,
+    groesse: board.tickets[id].groesse,
+    prioritaet: board.tickets[id].prioritaet,
+    blockiert_von: board.tickets[id].blockiert_von
+  }));
+}
+
 function updateTicket(board, id, updates) {
   requireTicket(board, id);
   board.tickets[id] = { ...board.tickets[id], ...updates };
@@ -485,6 +542,7 @@ module.exports = {
   branchName,
   openBlockers,
   createTicket,
+  createTickets,
   updateTicket,
   checkReady,
   nextTicket,
@@ -504,6 +562,7 @@ const USAGE = `Befehle:
   init                                Board anlegen
   get-board                           board.json ausgeben
   create-ticket '<json>'              Ticket anlegen (mind. title)
+  create-tickets '<json-array>'       mehrere anlegen, refs in blockiert_von
   update-ticket T-001 '<json>'        Felder eines Tickets ändern
   check-ready T-001                   Definition of Ready prüfen
   next-ticket                         nächstes unblockiertes Sprint-Ticket
@@ -547,6 +606,19 @@ if (require.main === module) {
         console.log(
           `Ticket angelegt: ${id} — ${ticket.title} (${ticket.typ}, ${ticket.groesse || 'Größe offen'}, Prio ${ticket.prioritaet}, ${ticket.herkunft})`
         );
+        break;
+      }
+      case 'create-tickets': {
+        const board = readBoard();
+        const angelegt = createTickets(board, JSON.parse(args[0] || '[]'));
+        angelegt.forEach((t) => {
+          const blocker = t.blockiert_von.length
+            ? ` — blockiert von ${t.blockiert_von.join(', ')}`
+            : '';
+          console.log(
+            `${t.id} — ${t.title} (${t.groesse || 'Größe offen'}, Prio ${t.prioritaet})${blocker}`
+          );
+        });
         break;
       }
       case 'update-ticket': {

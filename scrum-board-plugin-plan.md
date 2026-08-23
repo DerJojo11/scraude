@@ -80,6 +80,24 @@ arbeiten. Verteilung über die Claude Code Plugin-Marketplace.
     ausgegeben, nicht in Fließtext-Absätzen. Ziel: schnelles Erfassen statt
     Lesen-müssen. Reine Erklärungen ohne Handlungsbezug dürfen weiterhin
     Fließtext sein.
+12. **Ein Einstieg statt vieler kleiner Schritte**: Der Zyklus beginnt damit,
+    dass eine Aufgabe, Anforderung oder ein Design hereinkommt — nicht damit,
+    dass der User selbst zehn Tickets tippt und danach einen Sprint plant.
+    `/intake` nimmt die Aufgabe entgegen, zerlegt sie und legt Ticket-Schnitt
+    *und* Vorschlag für den ersten Sprint in einer einzigen Bestätigung vor.
+    Zwei Bestätigungen hintereinander würden durchgewunken; genau die
+    Zerlegung ist aber die Stelle, an der Prüfen sich lohnt.
+
+    Das Zerlegen selbst ist Urteilsvermögen und damit Claudes Aufgabe
+    (Kernprinzip 6); das Anlegen ist mechanisch und läuft über ein Skript.
+    Der eigentliche Gewinn gegenüber einzelnen `/ticket-new`-Aufrufen sind
+    die Abhängigkeiten *zwischen* den Tickets (`blockiert_von`): einzeln
+    angelegte Tickets kennen ihre Geschwister nicht und können keine
+    Reihenfolge ausdrücken.
+
+    Der Sprint-Lock (Kernprinzip 1) gilt auch hier: läuft bereits ein Sprint,
+    legt `/intake` die Tickets nur im Backlog an und schlägt keinen neuen
+    Sprint vor.
 
 ---
 
@@ -160,13 +178,15 @@ letzten Session passiert ist, was aktuell läuft/pausiert ist und was blockiert
 — bevor es in den eigentlichen Zyklus geht.
 
 ```
-Design/Anforderung eingereicht
-        │
-        ▼
-Feature-Tickets erstellt (Backlog, priorisiert)
-        │
-        ▼
-Sprint geplant (Tickets fixiert, Status → active)
+Design/Anforderung eingereicht  ─┐
+        │                        │
+        ▼                        │  /intake deckt diese drei
+Feature-Tickets erstellt         │  Schritte in einem Aufruf ab
+(Backlog, priorisiert,           │  (Kernprinzip 12) — mit genau
+ Abhängigkeiten gesetzt)         │  einer Bestätigung durch den User
+        │                        │
+        ▼                        │
+Sprint geplant (Tickets fixiert, Status → active)  ─┘
         │
         ▼
 Ticket in Arbeit (Branch erstellt, Status → in_progress)
@@ -218,6 +238,7 @@ scraude/
 │   └── marketplace.json     # Für die Marketplace-Auflistung
 ├── skills/
 │   ├── board-management/    # Kernlogik: wann/wie Tickets angelegt werden
+│   ├── intake/              # /intake — Aufgabe zerlegen + ersten Sprint vorschlagen
 │   ├── board-init/          # /board-init — Board initialisieren
 │   ├── standup/             # /standup — Lagemeldung zu Sessionbeginn
 │   ├── board/               # /board — aktuellen Stand anzeigen
@@ -296,12 +317,15 @@ Der zentrale Skill, der Claude während jeder Session daran erinnert:
 Aufgerufen werden sie qualifiziert, z. B. `/scraude:board-init` — Plugin-Skills
 sind immer mit dem Plugin-Namen namensraum-getrennt.
 
-Neun statt der ursprünglich geplanten acht: `/ticket-review` kam dazu, weil
+Zehn statt der ursprünglich geplanten acht. `/ticket-review` kam dazu, weil
 der Übergang `in_progress → review` samt Definition of Done und PR-Erstellung
-sonst in keinem Command ein Zuhause hatte.
+sonst in keinem Command ein Zuhause hatte. `/intake` kam dazu, weil der
+allererste Schritt des Workflows — "Design/Anforderung eingereicht" — zwar
+in Abschnitt 4 stand, aber von keinem Command abgedeckt war.
 
 | Command | Zweck |
 |---|---|
+| `/intake "<Aufgabe>"` | Nimmt Aufgabe/Anforderung/Design entgegen, zerlegt sie in Tickets samt Abhängigkeiten und schlägt den ersten Sprint vor — der Einstieg in den Zyklus |
 | `/board-init` | Initialisiert `board.json` (inkl. `.gitignore`-Eintrag), installiert den post-merge-Hook, prüft die Branch-Namenskonvention |
 | `/standup` | Lagemeldung: was seit letzter Session passiert ist, was läuft/pausiert, was blockiert |
 | `/board` | Zeigt aktuellen Board-Stand als Markdown-Tabelle |
