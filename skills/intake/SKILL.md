@@ -1,6 +1,6 @@
 ---
-name: intake
-description: Nimmt eine Aufgabe, Anforderung oder ein Design entgegen, zerlegt sie in Tickets und schlägt den ersten Sprint vor.
+name: scraude
+description: Nimmt eine Aufgabe, Anforderung oder ein Design entgegen, zerlegt sie in Tickets und schlägt den ersten Sprint vor. Der Einstieg in den Scraude-Zyklus.
 argument-hint: "<Aufgabe, Anforderung oder Pfad/Link zum Design>"
 disable-model-invocation: true
 allowed-tools:
@@ -9,7 +9,7 @@ allowed-tools:
   - Glob
 ---
 
-Der Einstieg in den Scraude-Zyklus (Abschnitt 4 des Plans: "Design/Anforderung
+Aufgerufen als `/scraude` — die Vordertür des Plugins (Abschnitt 4 des Plans: "Design/Anforderung
 eingereicht → Feature-Tickets erstellt → Sprint geplant"). Ein Aufruf statt
 zehnmal `/ticket-new` plus `/sprint-plan`.
 

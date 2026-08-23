@@ -12,7 +12,7 @@ scraude/
 │   └── marketplace.json     # Marketplace-Auflistung
 ├── skills/
 │   ├── board-management/    # Hintergrundwissen, lädt automatisch
-│   ├── intake/              # /intake — Aufgabe zerlegen + Sprint vorschlagen
+│   ├── intake/              # /scraude — Aufgabe zerlegen + Sprint vorschlagen
 │   ├── board-init/          # /board-init
 │   ├── standup/             # /standup
 │   ├── board/               # /board
@@ -54,11 +54,13 @@ Vor einem Release: `claude plugin validate .`
 
 ## Nutzung
 
-Plugin-Skills sind **immer mit dem Plugin-Namen qualifiziert**:
+Der Einstieg ist `/scraude` selbst. Die übrigen Skills lassen sich
+qualifiziert (`/scraude:board`) oder bar (`/board`) aufrufen — der bare Name
+greift, solange ihn kein anderer Command belegt:
 
 ```
 /scraude:board-init
-/scraude:intake "Beschreibung der Aufgabe oder Pfad zum Design"
+/scraude "Beschreibung der Aufgabe oder Pfad zum Design"
 /scraude:ticket-new "Einzelnes Ticket"
 /scraude:sprint-plan
 /scraude:ticket-start

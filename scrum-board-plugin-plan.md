@@ -83,7 +83,7 @@ arbeiten. Verteilung über die Claude Code Plugin-Marketplace.
 12. **Ein Einstieg statt vieler kleiner Schritte**: Der Zyklus beginnt damit,
     dass eine Aufgabe, Anforderung oder ein Design hereinkommt — nicht damit,
     dass der User selbst zehn Tickets tippt und danach einen Sprint plant.
-    `/intake` nimmt die Aufgabe entgegen, zerlegt sie und legt Ticket-Schnitt
+    `/scraude` nimmt die Aufgabe entgegen, zerlegt sie und legt Ticket-Schnitt
     *und* Vorschlag für den ersten Sprint in einer einzigen Bestätigung vor.
     Zwei Bestätigungen hintereinander würden durchgewunken; genau die
     Zerlegung ist aber die Stelle, an der Prüfen sich lohnt.
@@ -96,7 +96,7 @@ arbeiten. Verteilung über die Claude Code Plugin-Marketplace.
     Reihenfolge ausdrücken.
 
     Der Sprint-Lock (Kernprinzip 1) gilt auch hier: läuft bereits ein Sprint,
-    legt `/intake` die Tickets nur im Backlog an und schlägt keinen neuen
+    legt `/scraude` die Tickets nur im Backlog an und schlägt keinen neuen
     Sprint vor.
 
 ---
@@ -180,7 +180,7 @@ letzten Session passiert ist, was aktuell läuft/pausiert ist und was blockiert
 ```
 Design/Anforderung eingereicht  ─┐
         │                        │
-        ▼                        │  /intake deckt diese drei
+        ▼                        │  /scraude deckt diese drei
 Feature-Tickets erstellt         │  Schritte in einem Aufruf ab
 (Backlog, priorisiert,           │  (Kernprinzip 12) — mit genau
  Abhängigkeiten gesetzt)         │  einer Bestätigung durch den User
@@ -238,7 +238,7 @@ scraude/
 │   └── marketplace.json     # Für die Marketplace-Auflistung
 ├── skills/
 │   ├── board-management/    # Kernlogik: wann/wie Tickets angelegt werden
-│   ├── intake/              # /intake — Aufgabe zerlegen + ersten Sprint vorschlagen
+│   ├── intake/              # /scraude — Aufgabe zerlegen + ersten Sprint vorschlagen
 │   ├── board-init/          # /board-init — Board initialisieren
 │   ├── standup/             # /standup — Lagemeldung zu Sessionbeginn
 │   ├── board/               # /board — aktuellen Stand anzeigen
@@ -319,13 +319,13 @@ sind immer mit dem Plugin-Namen namensraum-getrennt.
 
 Zehn statt der ursprünglich geplanten acht. `/ticket-review` kam dazu, weil
 der Übergang `in_progress → review` samt Definition of Done und PR-Erstellung
-sonst in keinem Command ein Zuhause hatte. `/intake` kam dazu, weil der
+sonst in keinem Command ein Zuhause hatte. `/scraude` kam dazu, weil der
 allererste Schritt des Workflows — "Design/Anforderung eingereicht" — zwar
 in Abschnitt 4 stand, aber von keinem Command abgedeckt war.
 
 | Command | Zweck |
 |---|---|
-| `/intake "<Aufgabe>"` | Nimmt Aufgabe/Anforderung/Design entgegen, zerlegt sie in Tickets samt Abhängigkeiten und schlägt den ersten Sprint vor — der Einstieg in den Zyklus |
+| `/scraude "<Aufgabe>"` | Nimmt Aufgabe/Anforderung/Design entgegen, zerlegt sie in Tickets samt Abhängigkeiten und schlägt den ersten Sprint vor — der Einstieg in den Zyklus |
 | `/board-init` | Initialisiert `board.json` (inkl. `.gitignore`-Eintrag), installiert den post-merge-Hook, prüft die Branch-Namenskonvention |
 | `/standup` | Lagemeldung: was seit letzter Session passiert ist, was läuft/pausiert, was blockiert |
 | `/board` | Zeigt aktuellen Board-Stand als Markdown-Tabelle |
