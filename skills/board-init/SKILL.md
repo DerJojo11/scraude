@@ -9,8 +9,9 @@ allowed-tools:
   - Bash(git branch:*)
 ---
 
-Heißt bewusst `/board-init` und nicht `/init` — `/init` ist ein eingebauter
-Claude-Code-Command (CLAUDE.md generieren) und wäre kollidiert.
+Heißt bewusst `board-init` und nicht `init`: aufgerufen wird zwar ohnehin
+qualifiziert (`/scraude:board-init`), aber `/scraude:init` läse sich wie der
+eingebaute `/init` (CLAUDE.md generieren).
 
 1. `node "${CLAUDE_PLUGIN_ROOT}/scripts/board-store.js" init`
    - Existiert `.claude/board.json` noch nicht: anlegen und kurz bestätigen.

@@ -40,19 +40,34 @@ Alle Command-Skills tragen `disable-model-invocation: true` — sie haben
 Seiteneffekte und sollen nur der User auslösen. `board-management` ist
 umgekehrt `user-invocable: false`: reines Hintergrundwissen.
 
+## Lokal testen
+
+Kein Marketplace nötig — `--plugin-dir` lädt das Plugin direkt:
+
+```bash
+claude --plugin-dir /pfad/zu/scraude
+```
+
+Nach Änderungen `/reload-plugins`, kein Neustart nötig.
+Vor einem Release: `claude plugin validate .`
+
 ## Nutzung
 
+Plugin-Skills sind **immer mit dem Plugin-Namen qualifiziert**:
+
 ```
-/board-init
-/ticket-new "Erste Aufgabe"
-/sprint-plan
-/ticket-start
-/ticket-review
-/sprint-close
+/scraude:board-init
+/scraude:ticket-new "Erste Aufgabe"
+/scraude:sprint-plan
+/scraude:ticket-start
+/scraude:ticket-review
+/scraude:sprint-close
 ```
 
-`/board-init` heißt bewusst nicht `/init` — das ist ein eingebauter
-Claude-Code-Command.
+Der Skill heißt `board-init` und nicht `init`: durch die Namensraum-Trennung
+gäbe es zwar keine echte Kollision mit dem eingebauten `/init`, aber
+`/scraude:init` würde man beim Lesen trotzdem für "CLAUDE.md generieren"
+halten.
 
 ## Stand
 

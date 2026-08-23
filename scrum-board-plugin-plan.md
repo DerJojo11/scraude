@@ -293,13 +293,16 @@ Der zentrale Skill, der Claude während jeder Session daran erinnert:
 
 ## 7. Slash Commands (v1)
 
+Aufgerufen werden sie qualifiziert, z. B. `/scraude:board-init` — Plugin-Skills
+sind immer mit dem Plugin-Namen namensraum-getrennt.
+
 Neun statt der ursprünglich geplanten acht: `/ticket-review` kam dazu, weil
 der Übergang `in_progress → review` samt Definition of Done und PR-Erstellung
 sonst in keinem Command ein Zuhause hatte.
 
 | Command | Zweck |
 |---|---|
-| `/board-init` | Initialisiert `board.json` (inkl. `.gitignore`-Eintrag), installiert den post-merge-Hook, prüft die Branch-Namenskonvention. Heißt nicht `/init` — das ist ein eingebauter Claude-Code-Command |
+| `/board-init` | Initialisiert `board.json` (inkl. `.gitignore`-Eintrag), installiert den post-merge-Hook, prüft die Branch-Namenskonvention |
 | `/standup` | Lagemeldung: was seit letzter Session passiert ist, was läuft/pausiert, was blockiert |
 | `/board` | Zeigt aktuellen Board-Stand als Markdown-Tabelle |
 | `/ticket-new "<Titel>"` | Legt manuell ein Ticket im Backlog an (inkl. Typ, grobe Größe) |
