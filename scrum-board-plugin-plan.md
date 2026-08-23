@@ -98,6 +98,31 @@ arbeiten. Verteilung über die Claude Code Plugin-Marketplace.
     Der Sprint-Lock (Kernprinzip 1) gilt auch hier: läuft bereits ein Sprint,
     legt `/scraude` die Tickets nur im Backlog an und schlägt keinen neuen
     Sprint vor.
+13. **Vor-Review durch einen zweiten Agenten, autonom bei jedem Ticket**:
+    Bevor der User einen Diff zu sehen bekommt, sieht ihn ein eigener Agent
+    (`ticket-reviewer`) durch. Er kennt Beschreibung, Typ und geschätzte
+    Größe des Tickets und prüft damit drei Dinge, die ein generischer
+    Code-Review nicht kann: Deckt der Diff die Beschreibung ab? Ist Scope
+    hineingekrochen? Passt der Umfang zur Schätzung?
+
+    Entscheidend ist, dass es ein **eigener** Agent ist: wer den Code
+    geschrieben hat, teilt dessen blinde Flecken und ist damit ein
+    schlechter Prüfer der eigenen Annahmen.
+
+    Er darf **selbst beheben**, aber nur mechanisch Eindeutiges — vergessene
+    TODOs, Debug-Ausgaben, tote Importe, ein Fehler mit genau einer richtigen
+    Lösung. Alles mit einer Abwägung wird gemeldet, nicht angefasst. Dieselbe
+    Grenze wie in Kernprinzip 6, auf den Review angewandt. Seine Änderungen
+    kommen in einen eigenen Commit, damit im Diff sichtbar bleibt, was nicht
+    aus der eigentlichen Arbeit stammt.
+
+    Der Kontrollpfad bleibt unangetastet (Kernprinzip 4): Der Agent gibt kein
+    Urteil ab, sagt nie "sieht gut aus" und blockiert nichts. Er verschiebt
+    die Kontrolle nicht weg vom User, er räumt ihm den Weg frei — sein
+    Bericht ist Material für den Review, kein Ersatz dafür. Der Grund für
+    diese Härte: stünde im PR "keine Befunde", läse man beim dritten Mal
+    diese Zeile statt des Diffs, und die Kontrolle wäre formal noch da,
+    faktisch nicht mehr.
 
 ---
 
@@ -236,6 +261,8 @@ scraude/
 ├── .claude-plugin/
 │   ├── plugin.json          # Metadaten (name: "scraude", Version, Beschreibung)
 │   └── marketplace.json     # Für die Marketplace-Auflistung
+├── agents/
+│   └── ticket-reviewer.md   # Vor-Review vor der Übergabe an den User
 ├── skills/
 │   ├── board-management/    # Kernlogik: wann/wie Tickets angelegt werden
 │   ├── intake/              # /scraude — Aufgabe zerlegen + ersten Sprint vorschlagen
@@ -333,7 +360,7 @@ in Abschnitt 4 stand, aber von keinem Command abgedeckt war.
 | `/sprint-plan` | Kurzes Backlog Refinement, dann priorisierte Tickets für neuen Sprint vorschlagen (inkl. Hinweis auf älteste Tickets), User bestätigt |
 | `/ticket-start T-014` | Prüft Definition of Ready, erstellt Branch, setzt Status auf `in_progress`. Läuft bereits ein Ticket, wird dieses auf `paused` gesetzt |
 | `/ticket-resume` | Nimmt das zuletzt pausierte Ticket wieder auf |
-| `/ticket-review` | Prüft Definition of Done, liefert die Review-Zusammenfassung, pusht den Branch und erstellt PR/MR |
+| `/ticket-review` | Lässt den `ticket-reviewer` vorab drüberschauen, prüft Definition of Done, liefert die Review-Zusammenfassung, pusht den Branch und erstellt PR/MR |
 | `/sprint-close` | Prüft, ob alle Sprint-Tickets `done` sind, schließt Sprint, liefert Mini-Retro |
 
 ---
