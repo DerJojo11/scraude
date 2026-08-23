@@ -1,0 +1,13 @@
+{
+  "name": "scraude-marketplace",
+  "owner": {
+    "name": "Johannes Alecke"
+  },
+  "plugins": [
+    {
+      "name": "scraude",
+      "source": "./",
+      "description": "Scrum-artiges Ticket-Board für Claude Code: Sprint-Lock, passiv/aktiv Ticket-Erkennung, Pause/Resume, Definition of Ready/Done, echte PR-Erstellung."
+    }
+  ]
+}
