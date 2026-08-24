@@ -180,6 +180,70 @@ function openBlockers(board, id) {
   );
 }
 
+/**
+ * Wie viele andere Tickets hängen — direkt oder über Ketten — an diesem
+ * einen? Genau die Zahl, die ein Spike braucht: ein Rechercheticket, dessen
+ * Ergebnis fünf andere umschneidet, wiegt schwerer als eines, das nur sich
+ * selbst betrifft.
+ *
+ * Erwartet eine Liste von { id, blockiert_von }. Kein Board nötig, damit das
+ * auch auf einem noch nicht angelegten Vorschlag läuft (siehe /scraude).
+ * Zyklen brechen die Rechnung nicht ab — sie werden nur nicht doppelt gezählt.
+ */
+function impactCounts(entries) {
+  // Kanten umdrehen: wen blockiert dieses Ticket?
+  const blockiert = {};
+  entries.forEach((e) => {
+    blockiert[e.id] = blockiert[e.id] || [];
+  });
+  entries.forEach((e) => {
+    (e.blockiert_von || []).forEach((b) => {
+      if (!blockiert[b]) blockiert[b] = [];
+      blockiert[b].push(e.id);
+    });
+  });
+
+  const memo = {};
+  function nachgelagert(id, gesehen) {
+    if (memo[id]) return memo[id];
+    const treffer = new Set();
+    (blockiert[id] || []).forEach((next) => {
+      if (gesehen.has(next)) return; // Zyklus
+      treffer.add(next);
+      gesehen.add(next);
+      nachgelagert(next, gesehen).forEach((t) => treffer.add(t));
+    });
+    const liste = [...treffer];
+    memo[id] = liste;
+    return liste;
+  }
+
+  return entries.map((e) => {
+    const haengt_dran = nachgelagert(e.id, new Set([e.id]));
+    return { id: e.id, haengt_dran: haengt_dran.length, tickets: haengt_dran };
+  });
+}
+
+/**
+ * Impact über das aktuelle Board, absteigend sortiert und mit der
+ * eingetragenen Priorität daneben — damit ein Missverhältnis ins Auge fällt
+ * (viel hängt dran, aber niedrige Priorität).
+ */
+function boardImpact(board) {
+  const entries = Object.entries(board.tickets)
+    .filter(([, t]) => t.status !== 'done')
+    .map(([id, t]) => ({ id, blockiert_von: t.blockiert_von || [] }));
+
+  return impactCounts(entries)
+    .map((r) => ({
+      ...r,
+      titel: board.tickets[r.id].title,
+      typ: board.tickets[r.id].typ,
+      prioritaet: board.tickets[r.id].prioritaet
+    }))
+    .sort((a, b) => b.haengt_dran - a.haengt_dran || a.prioritaet - b.prioritaet);
+}
+
 function nextTicketId(board) {
   const ids = Object.keys(board.tickets)
     .map((id) => parseInt(id.replace('T-', ''), 10))
@@ -541,6 +605,8 @@ module.exports = {
   slugify,
   branchName,
   openBlockers,
+  impactCounts,
+  boardImpact,
   createTicket,
   createTickets,
   updateTicket,
@@ -565,6 +631,7 @@ const USAGE = `Befehle:
   create-tickets '<json-array>'       mehrere anlegen, refs in blockiert_von
   update-ticket T-001 '<json>'        Felder eines Tickets ändern
   check-ready T-001                   Definition of Ready prüfen
+  impact ['<json-array>']             wie viele Tickets hängen an jedem?
   next-ticket                         nächstes unblockiertes Sprint-Ticket
   start-ticket [T-001]                Ticket starten (pausiert das laufende)
   resume-ticket                       zuletzt pausiertes Ticket fortsetzen
@@ -629,6 +696,30 @@ if (require.main === module) {
       }
       case 'check-ready': {
         console.log(JSON.stringify(checkReady(readBoard(), args[0]), null, 2));
+        break;
+      }
+      case 'impact': {
+        if (args[0]) {
+          // Vorschlag prüfen, bevor er angelegt wird: refs zählen als IDs
+          const entries = JSON.parse(args[0]).map((e, i) => ({
+            id: e.ref || e.id || `#${i + 1}`,
+            blockiert_von: e.blockiert_von || []
+          }));
+          const result = impactCounts(entries).sort(
+            (a, b) => b.haengt_dran - a.haengt_dran
+          );
+          result.forEach((r) => {
+            console.log(
+              `${r.id}: ${r.haengt_dran} nachgelagert${r.tickets.length ? ` (${r.tickets.join(', ')})` : ''}`
+            );
+          });
+        } else {
+          boardImpact(readBoard()).forEach((r) => {
+            console.log(
+              `${r.id}  hängt dran: ${r.haengt_dran}  Prio: ${r.prioritaet}  [${r.typ}] ${r.titel}`
+            );
+          });
+        }
         break;
       }
       case 'next-ticket': {

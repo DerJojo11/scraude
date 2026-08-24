@@ -44,6 +44,39 @@ Abschnitt 2 (Kernprinzipien) und Abschnitt 6.
    gegenprüfen — dafür `board-store.js next-ticket` nutzen, das filtert
    bereits korrekt, statt selbst durchs Board zu sortieren.
 
+5b. **`prioritaet` trägt Risiko und Wert — nicht Reihenfolge.** Die
+   Reihenfolge steckt vollständig in `blockiert_von`; das Board weiß von
+   selbst, dass ein blockiertes Ticket nicht vorher geht. Damit ist die Zahl
+   frei für die einzige Information, die sonst nirgends steht: **wie wichtig
+   ist das, unabhängig von Abhängigkeiten?**
+
+   Der Fehler, gegen den diese Regel geschrieben ist: eine Ticket-Liste wird
+   für die Lesbarkeit gruppiert (Fundament → Feature A → Spike → Feature B),
+   und die Position in dieser Liste wird 1:1 das `prioritaet`-Feld. Risiko
+   landet dann nur in der Prosa, wo das Board es nicht sieht — und
+   `next-ticket` schlägt anschließend das Falsche vor.
+
+   Zwei Prüffragen vor dem Setzen der Zahl:
+   - Würde ich das früh wissen wollen, weil es viel umwerfen kann? → hohe
+     Priorität, auch wenn es in der Erzählung spät kommt.
+   - Ist es nur deshalb "später", weil ein Blocker davor liegt? → das
+     gehört in `blockiert_von`, nicht in die Priorität.
+
+5c. **Spike-Priorität ausrechnen, nicht erspüren** (Kernprinzip 6). Das
+   Gewicht eines Spikes ist, **wie viele andere Tickets seine Antwort
+   umschneidet**. Das ist mechanisch bestimmbar:
+
+   `node "${CLAUDE_PLUGIN_ROOT}/scripts/board-store.js" impact`
+
+   gibt für jedes Ticket aus, wie viele daran hängen — direkt und über
+   Ketten — mit der eingetragenen Priorität daneben. Ein Ticket weit oben in
+   dieser Liste mit einer schwachen Priorität ist ein Fehler, kein
+   Geschmack. Ein Spike, dessen Ergebnis fünf Tickets umschneidet, gehört vor
+   jedes Ticket, das nur sich selbst betrifft.
+
+   Mit einem JSON-Array als Argument rechnet derselbe Befehl über einen noch
+   nicht angelegten Vorschlag — dann zählen die `ref`-Namen als IDs.
+
 6. **Scope-Kontrolle** (Kernprinzip 8): während der Arbeit im Blick behalten,
    ob der Diff noch zur geschätzten `groesse` passt. Wächst er erkennbar
    darüber hinaus: aktiv melden und ein Folge-Ticket vorschlagen, nicht

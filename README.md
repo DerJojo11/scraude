@@ -82,7 +82,7 @@ Stufe 1–6):
 - `board-store.js` — jede Zustandsänderung am Board hat einen benannten
   Befehl (`init`, `create-ticket`, `check-ready`, `next-ticket`,
   `start-ticket`, `resume-ticket`, `review-ticket`, `finish-ticket`,
-  `plan-sprint`, `plan-sprint`, `close-sprint`, `retro`, `create-tickets`). Ohne Argument
+  `plan-sprint`, `plan-sprint`, `close-sprint`, `retro`, `create-tickets`, `impact`). Ohne Argument
   aufgerufen listet
   es alle Befehle auf.
 - `board-render.js` — Backlog, aktiver Sprint, Tickets außerhalb des Sprints

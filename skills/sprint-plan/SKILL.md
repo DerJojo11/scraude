@@ -9,6 +9,10 @@ allowed-tools:
 
 1. Board lesen:
    `node "${CLAUDE_PLUGIN_ROOT}/scripts/board-store.js" get-board`
+   Dazu `board-store.js impact` — zeigt je Ticket, wie viele andere daran
+   hängen, mit der Priorität daneben. Steht etwas weit oben in dieser Liste
+   und trägt eine schwache Priorität, ist die Priorität falsch gesetzt und
+   gehört korrigiert, bevor geplant wird (siehe Skill board-management).
 2. **Backlog Refinement** (kurz, kein eigener Command): offensichtliche
    Duplikate oder nicht mehr relevante Tickets erkennen und dem User zum
    Zusammenführen/Schließen vorschlagen, bevor priorisiert wird. Nichts

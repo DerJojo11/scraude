@@ -39,7 +39,12 @@ Commands (Kernprinzip 6). Für jedes Ticket:
   in drei Wochen ohne diesen Chatverlauf tragen.
 - `typ` und `groesse` immer setzen. Ohne `groesse` scheitert später die
   Definition of Ready (Kernprinzip 10), das Ticket wäre nicht startbar.
-- `prioritaet`: kleinere Zahl = höher.
+- `prioritaet`: kleinere Zahl = höher. **Die Zahl trägt Risiko und Wert,
+  nicht die Reihenfolge** — die steckt schon vollständig in `blockiert_von`.
+  Häufigster Fehler an dieser Stelle: die Vorschlagsliste ist nach
+  Lesbarkeit gruppiert, und die Position in der Liste wird zur Priorität.
+  Dann steht "das ist der riskanteste Baustein" in der Prosa und Prio 8 im
+  Feld — und `next-ticket` schlägt danach das Falsche vor.
 - **`blockiert_von` ist der eigentliche Gewinn hier.** Einzelne
   `/ticket-new`-Aufrufe kennen ihre Geschwister nicht und können keine
   Reihenfolge ausdrücken. Typische Ketten: Datenmodell vor API vor UI,
@@ -51,12 +56,36 @@ Commands (Kernprinzip 6). Für jedes Ticket:
 Ist die Aufgabe zu klein zum Zerlegen (ein einziges Ticket), das sagen und
 `/ticket-new` vorschlagen statt einen Sprint um ein Ticket zu bauen.
 
+## 2b. Prioritäten gegenrechnen, bevor du sie vorlegst
+
+Sobald der Zuschnitt steht, die Abhängigkeiten aber noch im Vorschlag
+stecken:
+
+```
+node "${CLAUDE_PLUGIN_ROOT}/scripts/board-store.js" impact '<json-array>'
+```
+
+Das gibt für jeden `ref` aus, wie viele Tickets daran hängen — direkt und
+über Ketten. Diese Zahl ist das mechanische Kriterium für Priorität
+(Kernprinzip 6): was viel trägt, kommt früh.
+
+Besonders für Spikes: ein Rechercheticket, dessen Antwort fünf andere
+Tickets umschneidet, gehört vor jedes Ticket, das nur sich selbst betrifft.
+Diese Zahl ausrechnen statt sie zu erspüren.
+
+Passt eine deiner Prioritäten nicht zur Impact-Zahl, korrigiere sie jetzt —
+nicht die Reihenfolge der Liste, sondern die Zahl. Die Liste darf weiter
+nach Lesbarkeit sortiert sein.
+
 ## 3. Alles auf einmal vorlegen — eine Bestätigung, nicht zwei
 
 **Als Bullet-Liste** (Kernprinzip 11), Ticket-Vorschlag und Sprint-Vorschlag
 zusammen in einer Ausgabe:
 
-- pro Ticket: Titel, Typ, Größe, wovon es abhängt
+- pro Ticket: Titel, Typ, Größe, Priorität, wovon es abhängt
+- wo Priorität und Impact-Zahl auseinanderliefen und warum du so entschieden
+  hast — das ist die Stelle, an der ein Planungsfehler auffällt, solange er
+  noch nichts gekostet hat
 - darunter markiert: welche davon in den ersten Sprint sollen und warum
   (in der Regel die erste zusammenhängende Kette, die für sich einen
   benutzbaren Stand ergibt)

@@ -189,6 +189,31 @@ messbarer Auslöser für Kernprinzip 8: wächst der tatsächliche Diff erkennbar
 `/ticket-start` geprüft — ein blockiertes Ticket wird nicht als "nächstes"
 vorgeschlagen, solange die Blocker nicht `done` sind.
 
+**`prioritaet`**: kleinere Zahl = höher, Default 3. Das Feld trägt **Risiko
+und Wert, nicht Reihenfolge**. Die Reihenfolge steckt bereits vollständig in
+`blockiert_von` — das Board weiß von sich aus, dass ein blockiertes Ticket
+nicht vorher dran ist. Damit bleibt die Zahl frei für die einzige
+Information, die sonst nirgends steht: wie wichtig ist das, unabhängig von
+Abhängigkeiten?
+
+Diese Festlegung ist aus einem echten Planungsfehler entstanden und steht
+hier, damit er sich nicht wiederholt: Beim ersten Intake war die
+Ticket-Liste für die Lesbarkeit gruppiert (Fundament → Feature → Spike →
+weitere Features), und die Position in dieser Liste wurde 1:1 die Priorität.
+Der riskanteste Baustein — ein Spike, an dem fünf weitere Tickets hingen —
+bekam dadurch Priorität 8, obwohl im Prosa-Teil derselben Planung stand, er
+müsse "früh getestet werden, nicht erst am Ende". Das Risiko war nur im Text
+gelandet, wo das Board es nicht sieht, und `next-ticket` schlug anschließend
+das Falsche vor.
+
+Für Spikes gibt es dafür ein **mechanisches Kriterium** (Kernprinzip 6):
+wie viele andere Tickets ändert die Antwort? `board-store.js impact` rechnet
+das aus — direkt und über Ketten, mit der eingetragenen Priorität daneben.
+Ein Spike, dessen Ergebnis fünf Tickets umschneidet, gehört vor jedes Ticket,
+das nur sich selbst betrifft. Das ist bestimmbar, nicht Geschmackssache.
+`/scraude` rechnet es vor der Vorlage über den noch nicht angelegten
+Vorschlag, `/sprint-plan` über das bestehende Board.
+
 `pr_url`: Wird gesetzt, sobald der Status auf `review` wechselt — Claude
 pusht den Branch und erstellt die PR/MR per `gh pr create` bzw.
 `glab mr create` (Kernprinzip 4). Kein Plattform-Zugang konfiguriert? Dann
@@ -390,6 +415,11 @@ erstellt die PR/MR über die vorhandene `gh`/`glab` CLI (kein eigener
 API-Client nötig, keine zusätzliche Auth-Konfiguration — nutzt die ohnehin
 vorhandene Anmeldung des Users). `pr_url` wird in `board.json` gespeichert
 und taucht in `/board` als Link auf.
+
+**board-store.js impact**: rechnet je Ticket aus, wie viele andere daran
+hängen — die mechanische Grundlage für Prioritäten und besonders für das
+Gewicht von Spikes (siehe Abschnitt 3). Läuft sowohl über das Board als auch
+über einen noch nicht angelegten Vorschlag.
 
 **board-render.js**: Generiert die Markdown-Tabelle für `/board` direkt aus
 `board.json` per Skript. Claude wird für die reine Anzeige nicht involviert —
