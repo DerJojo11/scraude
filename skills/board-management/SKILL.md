@@ -1,6 +1,6 @@
 ---
 name: board-management
-description: Hintergrundwissen für die Arbeit mit einem Scraude-Board — wie Nebenthemen zu Tickets werden, wie Scope im Blick behalten wird und wann der User eingebunden werden muss. Automatisch laden, sobald ein .claude/board.json im Repo existiert oder an einem Ticket gearbeitet wird.
+description: Der Scraude-Ablauf — wie Nebenthemen zu Tickets werden, was ohne Rückfrage läuft und was eine Bestätigung braucht, wie Scope im Blick bleibt. IMMER laden, sobald ein .claude/board.json im Repo existiert, eine [Scraude]-Zeile im Kontext auftaucht oder an einem Ticket gearbeitet wird. Scraude ist ein Modus: existiert das Board, gilt der Ablauf, ohne dass der User Commands tippt.
 user-invocable: false
 allowed-tools:
   - Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/board-store.js *)
@@ -12,6 +12,50 @@ allowed-tools:
 Kein Command, sondern die "Wann mache ich was"-Ebene für die Arbeit mit
 Scraude. Vollständiger Hintergrund: `scrum-board-plugin-plan.md`, besonders
 Abschnitt 2 (Kernprinzipien) und Abschnitt 6.
+
+## Scraude ist ein Modus, kein Befehlssatz
+
+Existiert `.claude/board.json`, **gilt dieser Ablauf**, ohne dass der User
+Commands tippt. Die Slash-Commands sind Einstiegspunkte und Ansichten, keine
+Voraussetzung: `/board` und `/standup` schaut man an, wenn man etwas sehen
+will. Der Rest passiert von selbst.
+
+Der Board-Zustand kommt bei Sessionbeginn und danach laufend über einen Hook
+in den Kontext (`[Scraude] …`). Diese Zeilen sind Tatsachen über das Board,
+keine Aufforderung an den User — nicht zurückfragen, ob der Ablauf gelten
+soll, sondern ihn anwenden.
+
+### Läuft ohne Rückfrage
+
+Alles Mechanische und alles lokal Umkehrbare:
+
+- **Ticket beginnen**: liegt ein startbares Ticket im Sprint und läuft keines,
+  `start-ticket` aufrufen und den Branch anlegen. Ein Branch ist lokal und
+  jederzeit wieder weg — dafür braucht es keine Erlaubnis.
+- **Nach dem Merge weitermachen**: der post-merge-Hook setzt das Ticket auf
+  `done`. Dann mit dem nächsten weitermachen, statt zu fragen, ob man darf.
+- **Nebenthemen erfassen**: passiv/aktiv nach Kernprinzip 2, laufend.
+- **Statusübergänge und Board-Schreibvorgänge** über die Skripte.
+- **Vor-Review** durch `ticket-reviewer` bei jedem Ticket, samt dessen
+  eigenen Korrektur-Commit.
+- **Definition of Ready / Done** prüfen.
+
+### Braucht weiterhin eine Bestätigung
+
+Was nach außen wirkt oder schwer zurückzuholen ist:
+
+- **Der Zuschnitt beim Intake** — einmal, und das ist die Bestätigung, auf
+  die es ankommt. Danach steht die Planung.
+- **PR/MR erstellen**: nach außen sichtbar.
+- **Merge**: nie selbst, nie anstoßen (Kernprinzip 4). Der Kontrollpfad ist
+  unberührt — genau deshalb darf alles davor automatisch laufen.
+- **Sprint schließen**, besonders mit offenen Tickets.
+- **Scope aufteilen**: ein Folge-Ticket abspalten ändert die Planung, das ist
+  eine Entscheidung des Users.
+- **Sprint-Lock brechen**: nie eigenmächtig.
+
+Die Grenze verläuft nicht bei "wichtig", sondern bei **Umkehrbarkeit und
+Außenwirkung**. Ein Branch ist beides nicht — ein PR ist beides.
 
 ## Kernregeln
 

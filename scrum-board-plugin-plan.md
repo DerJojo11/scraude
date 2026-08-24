@@ -123,6 +123,31 @@ arbeiten. Verteilung über die Claude Code Plugin-Marketplace.
     diese Härte: stünde im PR "keine Befunde", läse man beim dritten Mal
     diese Zeile statt des Diffs, und die Kontrolle wäre formal noch da,
     faktisch nicht mehr.
+14. **Scraude ist ein Modus, kein Befehlssatz**: Existiert ein Board im Repo,
+    gilt der Ablauf — ohne dass der User ihn pro Session neu anstößt oder
+    jeden Schritt einzeln aufruft. Die Slash-Commands sind Einstiegspunkte
+    und Ansichten (`/board`, `/standup` schaut man an, wenn man etwas sehen
+    will), keine Voraussetzung dafür, dass der Prozess läuft.
+
+    Technisch getragen von zwei Hooks: `SessionStart` legt den Board-Zustand
+    zu Sessionbeginn in den Kontext — damit ist Kernprinzip 9 (Standup
+    "automatisch, falls technisch möglich") eingelöst. `UserPromptSubmit`
+    hält eine einzelne Zustandszeile nach, solange ein Ticket läuft; nach
+    einer Kompaktierung kann der geladene Skill aus dem Kontext fallen, diese
+    Zeile überlebt das und verhindert, dass der Modus wegdriftet.
+
+    Die Grenze zwischen "läuft automatisch" und "braucht eine Bestätigung"
+    verläuft nicht bei *wichtig*, sondern bei **Umkehrbarkeit und
+    Außenwirkung**. Ein Branch anlegen ist lokal und jederzeit rückgängig —
+    dafür braucht es keine Erlaubnis. Ein PR ist nach außen sichtbar, ein
+    Merge erst recht. Deshalb bleibt der Kontrollpfad aus Kernprinzip 4
+    vollständig erhalten, obwohl alles davor selbstständig läuft: Automatik
+    endet genau dort, wo die Kontrolle anfängt.
+
+    Das korrigiert eine frühere Festlegung in Abschnitt 8: dort war nach
+    einem Merge nur ein *Vorschlag* für das nächste Ticket vorgesehen, mit
+    Verweis auf Kernprinzip 4. Der Verweis trug nicht — Kernprinzip 4
+    schützt die Merge-Freigabe, nicht das Anlegen eines lokalen Branches.
 
 ---
 
@@ -286,6 +311,8 @@ scraude/
 ├── .claude-plugin/
 │   ├── plugin.json          # Metadaten (name: "scraude", Version, Beschreibung)
 │   └── marketplace.json     # Für die Marketplace-Auflistung
+├── hooks/
+│   └── hooks.json           # SessionStart + UserPromptSubmit: Modus tragen
 ├── agents/
 │   └── ticket-reviewer.md   # Vor-Review vor der Übergabe an den User
 ├── skills/
@@ -303,6 +330,7 @@ scraude/
 ├── scripts/
 │   ├── board-store.js       # Zugriffsschicht auf board.json
 │   ├── board-render.js      # Markdown-Tabelle aus board.json generieren
+│   ├── session-state.js     # Board-Zustand in den Kontext (Modus)
 │   ├── post-merge-check.js  # Git-Hook-Logik: Ticket nach Merge auf done
 │   └── install-git-hook.js  # installiert .git/hooks/post-merge
 └── README.md
@@ -402,9 +430,11 @@ Skript, ohne Claude-Aufruf — reines Parsen und JSON-Update, kein
 Token-Verbrauch:
 - Setzt Ticket-Status auf `done`
 - Leert `aktuelles_ticket`
-- Prüft: nächstes Ticket im aktiven Sprint vorhanden? → schlägt automatisch
-  `/ticket-start` für das nächstpriorisierte vor (kein Auto-Start ohne
-  Bestätigung, siehe Kernprinzip 4)
+- Prüft: nächstes Ticket im aktiven Sprint vorhanden? → nennt das
+  nächstpriorisierte. Damit wird direkt weitergearbeitet, ohne Rückfrage
+  (Kernprinzip 14) — ein Branch ist lokal und umkehrbar. Die Freigabe, um
+  die es in Kernprinzip 4 geht, betrifft den Merge, und der ist zu diesem
+  Zeitpunkt schon erfolgt.
 
 Einschränkung: `${CLAUDE_PLUGIN_ROOT}` ändert sich bei einem Plugin-Update,
 der installierte Hook zeigt dann auf den alten Pfad. `/board-init` muss danach

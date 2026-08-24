@@ -10,6 +10,8 @@ scraude/
 ├── .claude-plugin/
 │   ├── plugin.json          # Plugin-Metadaten
 │   └── marketplace.json     # Marketplace-Auflistung
+├── hooks/
+│   └── hooks.json           # trägt den Modus über die Session
 ├── agents/
 │   └── ticket-reviewer.md   # Vor-Review, kennt das Ticket
 ├── skills/
@@ -27,6 +29,7 @@ scraude/
 ├── scripts/
 │   ├── board-store.js       # Zugriffsschicht auf .claude/board.json
 │   ├── board-render.js      # Markdown-Rendering für /board
+│   ├── session-state.js     # Board-Zustand in den Kontext
 │   ├── post-merge-check.js  # Git-Hook-Logik: Ticket nach Merge auf done
 │   └── install-git-hook.js  # installiert .git/hooks/post-merge
 └── scrum-board-plugin-plan.md
@@ -53,6 +56,19 @@ claude --plugin-dir /pfad/zu/scraude
 
 Nach Änderungen `/reload-plugins`, kein Neustart nötig.
 Vor einem Release: `claude plugin validate .`
+
+## Scraude als Modus
+
+Existiert `.claude/board.json`, gilt der Ablauf von selbst. Zwei Hooks tragen
+ihn: `SessionStart` legt den Board-Zustand bei Sessionbeginn in den Kontext,
+`UserPromptSubmit` hält eine einzelne Zustandszeile nach, solange ein Ticket
+läuft. In Repos ohne Board schweigen beide.
+
+Automatisch läuft alles Mechanische und lokal Umkehrbare — Ticket beginnen,
+Branch anlegen, Nebenthemen erfassen, Vor-Review, nach dem Merge
+weitermachen. Eine Bestätigung brauchen nur Dinge mit Außenwirkung oder
+schwerer Umkehrbarkeit: der Zuschnitt beim Intake, PR erstellen, Merge,
+Sprint schließen, Scope aufteilen.
 
 ## Nutzung
 
