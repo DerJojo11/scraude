@@ -13,6 +13,7 @@ scraude/
 ├── hooks/
 │   └── hooks.json           # trägt den Modus über die Session
 ├── agents/
+│   ├── ticket-implementer.md # setzt Tickets mit niedriger A/K um
 │   └── ticket-reviewer.md   # Vor-Review, kennt das Ticket
 ├── skills/
 │   ├── board-management/    # Hintergrundwissen, lädt automatisch
@@ -103,6 +104,9 @@ Stufe 1–6):
   es alle Befehle auf.
 - `board-render.js` — Backlog, aktiver Sprint, Tickets außerhalb des Sprints
 - Alle 10 Command-Skills + `board-management`
+- `agents/ticket-implementer.md` — setzt Tickets mit niedriger
+  Anforderung/Komplexität mit einem passenden Modell um und bricht ab, wenn
+  sich die Bewertung als falsch erweist
 - `agents/ticket-reviewer.md` — prüft bei jedem `/ticket-review` den Diff
   gegen die Ticket-Beschreibung, behebt mechanisch Eindeutiges in einem
   eigenen Commit, meldet den Rest. Gibt bewusst kein Urteil ab.

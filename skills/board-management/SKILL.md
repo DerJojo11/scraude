@@ -32,6 +32,7 @@ Alles Mechanische und alles lokal Umkehrbare:
 - **Ticket beginnen**: liegt ein startbares Ticket im Sprint und läuft keines,
   `start-ticket` aufrufen und den Branch anlegen. Ein Branch ist lokal und
   jederzeit wieder weg — dafür braucht es keine Erlaubnis.
+- **Modellwahl nach A/K** (Kernprinzip 6): siehe unten.
 - **Nach dem Merge weitermachen**: der post-merge-Hook setzt das Ticket auf
   `done`. Dann mit dem nächsten weitermachen, statt zu fragen, ob man darf.
 - **Nebenthemen erfassen**: passiv/aktiv nach Kernprinzip 2, laufend.
@@ -56,6 +57,42 @@ Was nach außen wirkt oder schwer zurückzuholen ist:
 
 Die Grenze verläuft nicht bei "wichtig", sondern bei **Umkehrbarkeit und
 Außenwirkung**. Ein Branch ist beides nicht — ein PR ist beides.
+
+## Wer setzt das Ticket um — Modellwahl nach A/K
+
+Nach `start-ticket`, vor der ersten Zeile Code:
+`node "${CLAUDE_PLUGIN_ROOT}/scripts/board-store.js" model-for T-<id>`
+
+**`sehr_niedrig` oder `niedrig`** → an `scraude:ticket-implementer`
+delegieren, mit dem empfohlenen `model`. Das sind mechanische, klar
+spezifizierte Tickets — gerade die, bei denen Rücksprache nichts beiträgt.
+Sie mit dem größten Modell zu bearbeiten macht das Ergebnis nicht besser.
+
+**`mittel`** → im Hauptthread arbeiten, ohne Aufheben.
+
+**`hoch` oder `sehr_hoch`** → im Hauptthread bleiben. Hier ist der Dialog mit
+dem User der Punkt, den ein Subagent nicht leisten kann. Stattdessen einmal
+kurz erwähnen, dass ein Wechsel auf die empfohlene Stufe angebracht wäre
+(`/model`) — einmal, nicht bei jedem Schritt, und dann normal weiterarbeiten.
+Die Entscheidung liegt beim User.
+
+**Keine Bewertung gesetzt** → nicht raten und nicht delegieren. Im
+Hauptthread arbeiten und die Bewertung im Ticket nachtragen.
+
+### Wenn der Implementer abbricht
+
+Er ist angewiesen, aufzuhören und zu melden, sobald sich das Ticket als
+schwerer erweist als bewertet. Das ist keine Panne, sondern eine
+Falschbewertung, die früh auffällt — genau der Zweck. Dann:
+
+1. `komplexitaet` im Ticket auf seine Einschätzung korrigieren
+   (`update-ticket`), damit derselbe Fehler nicht wiederkehrt.
+2. Im Hauptthread weiterarbeiten, auf seinem Stand aufsetzend. Nichts
+   zurückrollen — was er gebaut hat, ist committet und brauchbar.
+3. Beim User erwähnen, dass die Bewertung nicht gestimmt hat.
+
+Nie: den Implementer mit einem größeren Modell erneut beauftragen. War ein
+Ticket zu schwer für die Delegation, ist es zu schwer für die Delegation.
 
 ## Kernregeln
 

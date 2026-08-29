@@ -30,6 +30,11 @@ Dann:
 2. Mit genau diesem Branch-Namen: `git checkout -b <branch>`
    (existiert der Branch schon: `git checkout <branch>`).
 
+3. `node "${CLAUDE_PLUGIN_ROOT}/scripts/board-store.js" model-for T-<id>`
+   entscheidet, wer umsetzt: bei `sehr_niedrig`/`niedrig` an
+   `scraude:ticket-implementer` mit dem empfohlenen Modell delegieren, sonst
+   im Hauptthread arbeiten. Details im Skill `board-management`.
+
 Kurze Bestätigung als Bullet-Punkte (Kernprinzip 11): Branch, Ticket-Titel,
-ggf. welches Ticket pausiert wurde, kurzer Hinweis zu Kernprinzip 2
-(passiv/aktiv bei Nebenthemen).
+ggf. welches Ticket pausiert wurde, wer umsetzt und mit welchem Modell,
+kurzer Hinweis zu Kernprinzip 2 (passiv/aktiv bei Nebenthemen).

@@ -49,6 +49,20 @@ arbeiten. Verteilung über die Claude Code Plugin-Marketplace.
    zu fahren — der Fehler landet dann im Review oder in Produktion. Die
    Regel ist dieselbe wie oben, eine Ebene höher angewandt: so viel
    Fähigkeit einsetzen, wie die Aufgabe braucht, und nicht mehr.
+
+   Praktisch heißt das: Tickets mit `sehr_niedrig`/`niedrig` werden an den
+   Agenten `ticket-implementer` mit einem passenden Modell delegiert. Das
+   ist keine allgemeine Auslagerung der Implementierung — bei `hoch` und
+   `sehr_hoch` bleibt die Arbeit ausdrücklich im Hauptthread, weil dort der
+   Dialog mit dem User der eigentliche Wert ist und ein abgekoppelter Agent
+   genau den nicht leisten kann. Delegiert wird nur, was ohne Rücksprache
+   auskommt.
+
+   Damit die Delegation nicht zur Falle wird, bricht der Implementer ab und
+   meldet, sobald sich ein Ticket als schwerer erweist als bewertet. Eine
+   Falschbewertung fällt so früh auf, statt als Fehler im Review oder in
+   Produktion — und die Korrektur wandert zurück ins Ticket, damit derselbe
+   Fehlgriff nicht wiederkehrt.
 7. **Ein aktives Ticket, dringende Fälle pausieren statt blockieren**:
    Normalerweise ist genau ein Ticket `in_progress`. Kommt ein dringender
    Fall dazwischen (Hotfix o. ä.), wird das laufende Ticket auf `paused`
@@ -350,6 +364,7 @@ scraude/
 ├── hooks/
 │   └── hooks.json           # SessionStart + UserPromptSubmit: Modus tragen
 ├── agents/
+│   ├── ticket-implementer.md # setzt Tickets mit niedriger A/K um
 │   └── ticket-reviewer.md   # Vor-Review vor der Übergabe an den User
 ├── skills/
 │   ├── board-management/    # Kernlogik: wann/wie Tickets angelegt werden
