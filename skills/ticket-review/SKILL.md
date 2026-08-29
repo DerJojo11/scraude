@@ -20,7 +20,14 @@ Ticket-ID aus $ARGUMENTS, sonst `aktuelles_ticket` aus dem Board.
 
 Alle Änderungen committen, dann den Agenten `scraude:ticket-reviewer`
 beauftragen. Ihm übergeben: Ticket-ID, Titel, `beschreibung`, `typ`,
-`groesse`, Branch. Den Diff holt er sich selbst.
+`groesse`, `komplexitaet`, Branch. Den Diff holt er sich selbst.
+
+Mit welchem Modell er läuft, sagt dir das Board:
+`node "${CLAUDE_PLUGIN_ROOT}/scripts/board-store.js" model-for T-<id>` —
+diesen Wert als `model` beim Beauftragen übergeben. Ein mechanisches Ticket
+braucht keinen teuren Reviewer, ein kniffliges schon. Kommt keine
+Empfehlung zurück (`komplexitaet` nicht gesetzt), ohne Override beauftragen
+und die fehlende Bewertung im Ticket nachtragen.
 
 Warum ein eigener Agent und nicht du selbst: du hast den Code geschrieben und
 teilst dessen blinde Flecken. Der Agent hat den Verlauf nicht gesehen — genau

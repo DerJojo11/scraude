@@ -40,6 +40,15 @@ arbeiten. Verteilung über die Claude Code Plugin-Marketplace.
    setzen, Branch-Namen parsen, Board rendern — läuft über Skripte, ohne
    Claude dafür zu involvieren. Ziel: minimaler Kontext-Verbrauch bei
    maximaler Ergebnisqualität dort, wo es auf Urteilsvermögen ankommt.
+
+   Dasselbe gilt für die **Wahl des Modells**: jedes Ticket trägt eine
+   Bewertung `komplexitaet`, aus der sich Modell und Effort ableiten (siehe
+   Abschnitt 3). Ein mechanisches Ticket mit dem größten Modell und höchstem
+   Effort zu bearbeiten macht das Ergebnis nicht besser, nur langsamer und
+   teurer. Umgekehrt ist es teuer, einen wirklich schwierigen Fall zu klein
+   zu fahren — der Fehler landet dann im Review oder in Produktion. Die
+   Regel ist dieselbe wie oben, eine Ebene höher angewandt: so viel
+   Fähigkeit einsetzen, wie die Aufgabe braucht, und nicht mehr.
 7. **Ein aktives Ticket, dringende Fälle pausieren statt blockieren**:
    Normalerweise ist genau ein Ticket `in_progress`. Kommt ein dringender
    Fall dazwischen (Hotfix o. ä.), wird das laufende Ticket auf `paused`
@@ -172,6 +181,7 @@ Pfad, falls das Board später doch geteilt werden soll.
       "status": "backlog",
       "typ": "feature",
       "groesse": "M",
+      "komplexitaet": "mittel",
       "herkunft": "manuell",
       "prioritaet": 3,
       "sprint_id": null,
@@ -192,6 +202,11 @@ Pfad, falls das Board später doch geteilt werden soll.
       "abgeschlossen_am": null
     }
   },
+  "modelle": {
+    "sehr_niedrig": { "model": "haiku", "effort": "low" },
+    "mittel":       { "model": "sonnet", "effort": "medium" },
+    "sehr_hoch":    { "model": "opus", "effort": "xhigh" }
+  },
   "aktueller_sprint": "S-03",
   "aktuelles_ticket": null,
   "pausierte_tickets": []
@@ -209,6 +224,27 @@ begrenzt, "done" heißt hier "Erkenntnisse dokumentiert", nicht "gemerged".
 **`groesse`**: `S` | `M` | `L`, grobe Schätzung statt Story Points. Dient als
 messbarer Auslöser für Kernprinzip 8: wächst der tatsächliche Diff erkennbar
 über die geschätzte Größe hinaus, ist das das Signal zum Splitten.
+
+**`komplexitaet`**: `sehr_niedrig` | `niedrig` | `mittel` | `hoch` |
+`sehr_hoch`. **Nicht dasselbe wie `groesse`** — die beiden messen
+verschiedene Dinge und laufen regelmäßig auseinander. `groesse` misst den
+Diff-Umfang und damit den Review-Aufwand (Kernprinzip 8). `komplexitaet`
+misst, wie schwer die Aufgabe gedanklich ist:
+
+- Ein Feld in 40 Dateien umbenennen: `groesse: L`, `komplexitaet:
+  sehr_niedrig` — viel Text, keine Entscheidung.
+- Eine Race Condition beheben: `groesse: S`, `komplexitaet: sehr_hoch` —
+  drei Zeilen, aber jede falsch machbar.
+
+Daraus leitet sich ab, mit welchem Modell und welchem Effort gearbeitet wird
+(Kernprinzip 6). Die Zuordnung steht als `modelle` im Board, nicht im Code:
+welches Modell zu welcher Arbeit passt, ist teils Kostenfrage, teils
+Geschmack, und die Modell-Landschaft ändert sich. Ein Wert im Board ist eine
+Zeile Bearbeitung, eine Konstante im Plugin wäre ein Release. Die
+mitgelieferten Vorgaben sind ein Startpunkt, kein Urteil über die Modelle.
+
+Kombination beachten: `groesse: S` bei `komplexitaet: hoch` ist der tückische
+Fall — wenig zu lesen, viel falsch zu machen. `model-for` weist darauf hin.
 
 `blockiert_von`: Liste von Ticket-IDs, die zuerst fertig sein müssen. Wird bei
 `/ticket-start` geprüft — ein blockiertes Ticket wird nicht als "nächstes"

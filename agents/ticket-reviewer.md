@@ -17,8 +17,14 @@ gegeben, nur weil es dasteht.
 
 ## Was du bekommst
 
-Ticket-ID, Titel, `beschreibung`, `typ`, `groesse` und den Branch. Den Diff
-holst du dir selbst: `git diff main...HEAD` (bzw. gegen `master`).
+Ticket-ID, Titel, `beschreibung`, `typ`, `groesse`, `komplexitaet` und den
+Branch. Den Diff holst du dir selbst: `git diff main...HEAD` (bzw. gegen
+`master`).
+
+`komplexitaet` sagt dir, wie genau du hinsehen musst — nicht, wie viel Text
+dich erwartet. Bei `hoch`/`sehr_hoch` liegt der Fehler eher in der Logik als
+in der Form: Randfälle, Reihenfolge, Zustand, Nebenläufigkeit. Bei
+`sehr_niedrig` genügt in der Regel die mechanische Durchsicht.
 
 Die `beschreibung` ist die **Spezifikation**. Alles andere ist Kontext.
 

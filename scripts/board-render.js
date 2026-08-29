@@ -28,12 +28,14 @@ function render() {
 
   out += `## BACKLOG (${backlog.length})\n\n`;
   out += renderTable(
-    ['ID', 'Titel', 'Typ', 'Prio', 'Alter'],
+    ['ID', 'Titel', 'Typ', 'Prio', 'Größe', 'A/K', 'Alter'],
     backlog.map(([id, t]) => [
       id,
       t.title,
       t.typ,
       t.prioritaet,
+      t.groesse || '—',
+      t.komplexitaet || '—',
       `${ticketAgeInDays(t)} Tage`
     ])
   );

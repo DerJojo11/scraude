@@ -39,6 +39,20 @@ Commands (Kernprinzip 6). Für jedes Ticket:
   in drei Wochen ohne diesen Chatverlauf tragen.
 - `typ` und `groesse` immer setzen. Ohne `groesse` scheitert später die
   Definition of Ready (Kernprinzip 10), das Ticket wäre nicht startbar.
+- `komplexitaet` immer setzen: `sehr_niedrig` | `niedrig` | `mittel` |
+  `hoch` | `sehr_hoch`. **Nicht dasselbe wie `groesse`.** `groesse` misst,
+  wie viel Diff entsteht und damit den Review-Aufwand; `komplexitaet` misst,
+  wie schwer die Aufgabe *gedanklich* ist. Die beiden laufen oft
+  auseinander:
+  - Ein Feld in 40 Dateien umbenennen: `groesse: L`, `komplexitaet:
+    sehr_niedrig` — viel Text, keine Entscheidung.
+  - Eine Race Condition beheben: `groesse: S`, `komplexitaet: sehr_hoch` —
+    drei Zeilen, aber jede falsch machbar.
+
+  Woran du dich orientierst: Wie viele Entwürfe wären vertretbar? Muss
+  fremder Code erst verstanden werden? Gibt es Nebenläufigkeit, Zustand
+  über Grenzen hinweg, Sicherheits- oder Datenverlustrisiko? Ist der
+  richtige Weg von vornherein klar, oder muss man ihn suchen?
 - `prioritaet`: kleinere Zahl = höher. **Die Zahl trägt Risiko und Wert,
   nicht die Reihenfolge** — die steckt schon vollständig in `blockiert_von`.
   Häufigster Fehler an dieser Stelle: die Vorschlagsliste ist nach

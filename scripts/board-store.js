@@ -47,12 +47,34 @@ const BOARD_PATH = process.env.SCRAUDE_BOARD
   ? path.resolve(process.env.SCRAUDE_BOARD)
   : path.join(process.cwd(), '.claude', 'board.json');
 
+/**
+ * Zuordnung Komplexität → Modell und Effort.
+ *
+ * Bewusst im Board und nicht im Code festgeschrieben: welches Modell zu
+ * welcher Arbeit passt, ist teils Kostenfrage, teils Geschmack, und die
+ * Modell-Landschaft ändert sich. Ein Wert hier ist eine Zeile Bearbeitung,
+ * eine Konstante im Plugin wäre ein Release.
+ *
+ * Erlaubt sind die Kurznamen, die Claude Code akzeptiert (haiku, sonnet,
+ * opus, fable, inherit) oder eine vollständige Modell-ID.
+ */
+const DEFAULT_MODELLE = {
+  sehr_niedrig: { model: 'haiku', effort: 'low' },
+  niedrig: { model: 'sonnet', effort: 'low' },
+  mittel: { model: 'sonnet', effort: 'medium' },
+  hoch: { model: 'opus', effort: 'high' },
+  sehr_hoch: { model: 'opus', effort: 'xhigh' }
+};
+
+const KOMPLEXITAETEN = Object.keys(DEFAULT_MODELLE);
+
 const EMPTY_BOARD = {
   tickets: {},
   sprints: {},
   aktueller_sprint: null,
   aktuelles_ticket: null,
-  pausierte_tickets: []
+  pausierte_tickets: [],
+  modelle: DEFAULT_MODELLE
 };
 
 function boardExists() {
@@ -282,6 +304,7 @@ function createTicket(board, data) {
     status: 'backlog',
     typ: data.typ || 'feature',
     groesse: data.groesse || null,
+    komplexitaet: data.komplexitaet || null,
     herkunft: data.herkunft || 'manuell',
     prioritaet: data.prioritaet ?? 3,
     sprint_id: null,
@@ -352,6 +375,48 @@ function createTickets(board, entries) {
     prioritaet: board.tickets[id].prioritaet,
     blockiert_von: board.tickets[id].blockiert_von
   }));
+}
+
+/**
+ * Welches Modell und welcher Effort passen zu diesem Ticket?
+ *
+ * Der Sinn ist nicht Sparsamkeit um ihrer selbst willen: ein mechanisches
+ * Ticket mit dem größten Modell und höchstem Effort zu bearbeiten macht das
+ * Ergebnis nicht besser, nur langsamer und teurer. Umgekehrt ist es teuer,
+ * einen wirklich schwierigen Fall zu klein zu fahren — der Fehler landet
+ * dann im Review oder in Produktion.
+ *
+ * Ohne gesetzte `komplexitaet` gibt es keine Empfehlung: raten wäre
+ * schlechter als nichts zu sagen.
+ */
+function modelFor(board, id) {
+  const ticket = requireTicket(board, id);
+  const stufe = ticket.komplexitaet;
+  if (!stufe) {
+    return { id, komplexitaet: null, empfehlung: null, grund: 'komplexitaet nicht gesetzt' };
+  }
+  const tabelle = { ...DEFAULT_MODELLE, ...(board.modelle || {}) };
+  const treffer = tabelle[stufe];
+  if (!treffer) {
+    return {
+      id,
+      komplexitaet: stufe,
+      empfehlung: null,
+      grund: `unbekannte Stufe "${stufe}" — erlaubt: ${KOMPLEXITAETEN.join(', ')}`
+    };
+  }
+  return {
+    id,
+    komplexitaet: stufe,
+    groesse: ticket.groesse,
+    empfehlung: treffer,
+    // Kleiner Diff bei hoher Komplexität ist der tückische Fall: wenig zu
+    // lesen, viel falsch zu machen. Nicht als Fehler melden, aber benennen.
+    hinweis:
+      ['hoch', 'sehr_hoch'].includes(stufe) && ticket.groesse === 'S'
+        ? 'Kleiner Diff, hohe Komplexität — wenig zu lesen, viel falsch zu machen.'
+        : null
+  };
 }
 
 function updateTicket(board, id, updates) {
@@ -595,6 +660,8 @@ function closeSprint(board, { force = false } = {}) {
 module.exports = {
   BOARD_PATH,
   EMPTY_BOARD,
+  DEFAULT_MODELLE,
+  KOMPLEXITAETEN,
   boardExists,
   ensureIgnored,
   readBoard,
@@ -611,6 +678,7 @@ module.exports = {
   createTickets,
   updateTicket,
   checkReady,
+  modelFor,
   nextTicket,
   startTicket,
   resumeTicket,
@@ -631,6 +699,7 @@ const USAGE = `Befehle:
   create-tickets '<json-array>'       mehrere anlegen, refs in blockiert_von
   update-ticket T-001 '<json>'        Felder eines Tickets ändern
   check-ready T-001                   Definition of Ready prüfen
+  model-for [T-001]                   Modell + Effort für dieses Ticket
   impact ['<json-array>']             wie viele Tickets hängen an jedem?
   next-ticket                         nächstes unblockiertes Sprint-Ticket
   start-ticket [T-001]                Ticket starten (pausiert das laufende)
@@ -720,6 +789,13 @@ if (require.main === module) {
             );
           });
         }
+        break;
+      }
+      case 'model-for': {
+        const board = readBoard();
+        const id = args[0] || board.aktuelles_ticket;
+        if (!id) throw new Error('Kein Ticket angegeben und keines aktiv.');
+        console.log(JSON.stringify(modelFor(board, id), null, 2));
         break;
       }
       case 'next-ticket': {
