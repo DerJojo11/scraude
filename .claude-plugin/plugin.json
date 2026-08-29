@@ -1,7 +1,14 @@
 {
   "name": "scraude",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Scrum-artiges Ticket-Board für Claude Code: Sprint-Lock, passiv/aktiv Ticket-Erkennung, Pause/Resume, Definition of Ready/Done, echte PR-Erstellung.",
-  "keywords": ["scrum", "kanban", "ticket", "workflow", "agile", "sprint"],
+  "keywords": [
+    "scrum",
+    "kanban",
+    "ticket",
+    "workflow",
+    "agile",
+    "sprint"
+  ],
   "license": "UNLICENSED"
 }
