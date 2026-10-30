@@ -2,6 +2,13 @@
   "name": "scraude",
   "version": "0.2.0",
   "description": "Scrum-artiges Ticket-Board für Claude Code: Sprint-Lock, passiv/aktiv Ticket-Erkennung, Pause/Resume, Definition of Ready/Done, echte PR-Erstellung.",
+  "author": {
+    "name": "Johannes Alecke",
+    "url": "https://github.com/DerJojo11"
+  },
+  "homepage": "https://github.com/DerJojo11/scraude#readme",
+  "repository": "https://github.com/DerJojo11/scraude",
+  "license": "MIT",
   "keywords": [
     "scrum",
     "kanban",
@@ -9,6 +16,5 @@
     "workflow",
     "agile",
     "sprint"
-  ],
-  "license": "UNLICENSED"
+  ]
 }

@@ -1,142 +1,317 @@
+<div align="center">
+
 # Scraude
 
-Scrum-artiges Ticket-Board für Claude Code. Voller Plan siehe
-`scrum-board-plugin-plan.md`.
+**Scrum für die Arbeit mit Claude Code.**
+Aufgaben rein, Tickets raus, ein PR pro Ticket — und kein Nebenthema geht mehr verloren.
 
-## Aufbau
+[![Claude Code Plugin](https://img.shields.io/badge/Claude%20Code-Plugin-D97757)](https://code.claude.com/docs/en/plugins)
+[![Version](https://img.shields.io/badge/version-0.2.0-blue)](.claude-plugin/plugin.json)
+[![Lizenz: MIT](https://img.shields.io/badge/Lizenz-MIT-green)](LICENSE)
+![Sprache: Deutsch](https://img.shields.io/badge/Sprache-Deutsch-lightgrey)
+
+[Installation](#installation) · [Schnellstart](#schnellstart) · [So funktioniert's](#so-funktionierts) · [Befehle](#befehle) · [FAQ](#faq)
+
+</div>
+
+> **English summary:** Scraude is a Claude Code plugin that turns a task into
+> a ticket board with sprints, one branch and one pull request per ticket.
+> It captures side topics as backlog tickets, routes simple tickets to
+> smaller models, and runs a second agent as a pre-review before you see the
+> diff. You approve every PR and every merge. The plugin talks to you in
+> German.
+
+---
+
+## Das Problem
+
+Wer länger mit Claude Code arbeitet, kennt das:
+
+- Mitten in einer Aufgabe fällt etwas Zweites auf — und dann ein Drittes.
+  Entweder wird alles in einen Riesen-PR gepackt, oder es ist nach der
+  Session vergessen.
+- Jede neue Session beginnt bei null: Wo war ich? Was ist offen? Was
+  blockiert?
+- Ein Umbenennen in 40 Dateien läuft mit demselben großen Modell wie eine
+  knifflige Race Condition.
+- Der Diff landet ungefiltert beim Review, und der Review ist nur so gut wie
+  die Zeit, die man gerade hat.
+
+## Die Lösung
+
+Scraude bringt einen schlanken Scrum-Ablauf direkt in Claude Code, ohne
+externes Tool, ohne Account, ohne Server:
+
+| | |
+|---|---|
+| 🧩 **Ein Einstieg** | `/scraude "<Aufgabe>"` zerlegt die Aufgabe in Tickets mit Abhängigkeiten und schlägt den ersten Sprint vor. Du bestätigst einmal. |
+| 🔒 **Sprint-Lock** | Läuft ein Sprint, kommt nichts Neues mehr hinein. Alles Neue landet im Backlog, egal wie dringend es wirkt. |
+| 🪝 **Nebenthemen auffangen** | Hat es mit dem laufenden Ticket nichts zu tun, wird es still als Backlog-Ticket notiert. Betrifft es das laufende Ticket, meldet Claude es sofort. |
+| 🌿 **Ein Branch, ein PR pro Ticket** | `feature/T-<id>-<slug>`, PR über `gh` oder `glab`. Die Tickets sind von Anfang an so geschnitten, dass der Diff reviewbar bleibt. |
+| 🧠 **Das passende Modell** | Jedes Ticket trägt eine Komplexität. Einfache Tickets übernimmt ein Subagent mit einem kleineren Modell, schwierige bleiben im Dialog mit dir. |
+| 🔍 **Vor-Review durch einen zweiten Agenten** | Bevor du den Diff siehst, prüft ein eigener Agent ihn gegen die Ticket-Beschreibung. Mechanisch Eindeutiges behebt er in einem eigenen Commit, den Rest meldet er dir. |
+| ☀️ **Standup bei Sessionbeginn** | Ein Hook legt den Board-Stand automatisch in den Kontext. Claude weiß sofort, wo es weitergeht. |
+| ✅ **Du behältst die Kontrolle** | Claude merged nie selbst. PRs, Merges und das Schließen eines Sprints brauchen immer deine Freigabe. |
+
+---
+
+## Installation
+
+Scraude wird als eigener Plugin-Marketplace direkt aus diesem Repo
+installiert. In einer Claude-Code-Session:
 
 ```
-scraude/
-├── .claude-plugin/
-│   ├── plugin.json          # Plugin-Metadaten
-│   └── marketplace.json     # Marketplace-Auflistung
-├── hooks/
-│   └── hooks.json           # trägt den Modus über die Session
-├── agents/
-│   ├── ticket-implementer.md # setzt Tickets mit niedriger A/K um
-│   └── ticket-reviewer.md   # Vor-Review, kennt das Ticket
-├── skills/
-│   ├── board-management/    # Hintergrundwissen, lädt automatisch
-│   ├── intake/              # /scraude — Aufgabe zerlegen + Sprint vorschlagen
-│   ├── board-init/          # /board-init
-│   ├── standup/             # /standup
-│   ├── board/               # /board
-│   ├── ticket-new/          # /ticket-new "<Titel>"
-│   ├── ticket-start/        # /ticket-start [T-<id>]
-│   ├── ticket-resume/       # /ticket-resume
-│   ├── ticket-review/       # /ticket-review [T-<id>]
-│   ├── sprint-plan/         # /sprint-plan
-│   └── sprint-close/        # /sprint-close
-├── scripts/
-│   ├── board-store.js       # Zugriffsschicht auf .claude/board.json
-│   ├── board-render.js      # Markdown-Rendering für /board
-│   ├── session-state.js     # Board-Zustand in den Kontext
-│   ├── post-merge-check.js  # Git-Hook-Logik: Ticket nach Merge auf done
-│   └── install-git-hook.js  # installiert .git/hooks/post-merge
-└── scrum-board-plugin-plan.md
+/plugin marketplace add DerJojo11/scraude
+/plugin install scraude@scraude-marketplace
 ```
 
-**Warum Skills statt `commands/`**: `${CLAUDE_PLUGIN_ROOT}` wird laut
-Plugin-Referenz nur in Skill- und Agent-Inhalten ersetzt, nicht in
-`commands/*.md`. Da Custom Commands inzwischen ohnehin in Skills aufgegangen
-sind (`commands/x.md` und `skills/x/SKILL.md` erzeugen beide `/x`), liegt
-jeder Command als Skill vor. Nebeneffekt: `allowed-tools` erlaubt es, die
-gebündelten Skripte ohne Permission-Prompt laufen zu lassen.
-
-Alle Command-Skills tragen `disable-model-invocation: true` — sie haben
-Seiteneffekte und sollen nur der User auslösen. `board-management` ist
-umgekehrt `user-invocable: false`: reines Hintergrundwissen.
-
-## Lokal testen
-
-Kein Marketplace nötig — `--plugin-dir` lädt das Plugin direkt:
+Oder im Terminal:
 
 ```bash
-claude --plugin-dir /pfad/zu/scraude
+claude plugin marketplace add DerJojo11/scraude
 ```
 
-Nach Änderungen `/reload-plugins`, kein Neustart nötig.
-Vor einem Release: `claude plugin validate .`
+```bash
+claude plugin install scraude@scraude-marketplace
+```
 
-## Scraude als Modus
+### Voraussetzungen
 
-Existiert `.claude/board.json`, gilt der Ablauf von selbst. Zwei Hooks tragen
-ihn: `SessionStart` legt den Board-Zustand bei Sessionbeginn in den Kontext,
-`UserPromptSubmit` hält eine einzelne Zustandszeile nach, solange ein Ticket
-läuft. In Repos ohne Board schweigen beide.
+- [Claude Code](https://code.claude.com)
+- **Node.js** — die gebündelten Skripte laufen mit `node`, ohne
+  npm-Abhängigkeiten
+- **Git** — Scraude arbeitet mit Branches und einem `post-merge`-Hook
+- *optional:* [`gh`](https://cli.github.com) oder
+  [`glab`](https://gitlab.com/gitlab-org/cli), angemeldet, für echte
+  Pull/Merge Requests. Fehlen beide, merged Scraude lokal, sobald du im
+  Chat zustimmst.
 
-Automatisch läuft alles Mechanische und lokal Umkehrbare — Ticket beginnen,
-Branch anlegen, Nebenthemen erfassen, Vor-Review, nach dem Merge
-weitermachen. Eine Bestätigung brauchen nur Dinge mit Außenwirkung oder
-schwerer Umkehrbarkeit: der Zuschnitt beim Intake, PR erstellen, Merge,
-Sprint schließen, Scope aufteilen.
+---
 
-## Nutzung
+## Schnellstart
 
-Der Einstieg ist `/scraude` selbst. Die übrigen Skills lassen sich
-qualifiziert (`/scraude:board`) oder bar (`/board`) aufrufen — der bare Name
-greift, solange ihn kein anderer Command belegt:
+**1. Board im Projekt anlegen**
 
 ```
 /scraude:board-init
-/scraude "Beschreibung der Aufgabe oder Pfad zum Design"
-/scraude:ticket-new "Einzelnes Ticket"
-/scraude:sprint-plan
-/scraude:ticket-start
-/scraude:ticket-review
-/scraude:sprint-close
 ```
 
-Der Skill heißt `board-init` und nicht `init`: durch die Namensraum-Trennung
-gäbe es zwar keine echte Kollision mit dem eingebauten `/init`, aber
-`/scraude:init` würde man beim Lesen trotzdem für "CLAUDE.md generieren"
-halten.
+Legt `.claude/board.json` an, trägt sie in die `.gitignore` ein und
+installiert den `post-merge`-Hook.
 
-## Stand
+**2. Aufgabe hereingeben**
 
-Umgesetzt und im Test-Repo end-to-end durchgespielt (Implementierungsplan
-Stufe 1–6):
-- `board-store.js` — jede Zustandsänderung am Board hat einen benannten
-  Befehl (`init`, `create-ticket`, `check-ready`, `next-ticket`,
-  `start-ticket`, `resume-ticket`, `review-ticket`, `finish-ticket`,
-  `plan-sprint`, `plan-sprint`, `close-sprint`, `retro`, `create-tickets`, `impact`, `model-for`). Ohne Argument
-  aufgerufen listet
-  es alle Befehle auf.
-- `board-render.js` — Backlog, aktiver Sprint, Tickets außerhalb des Sprints
-- Alle 10 Command-Skills + `board-management`
-- `agents/ticket-implementer.md` — setzt Tickets mit niedriger
-  Anforderung/Komplexität mit einem passenden Modell um und bricht ab, wenn
-  sich die Bewertung als falsch erweist
-- `agents/ticket-reviewer.md` — prüft bei jedem `/ticket-review` den Diff
-  gegen die Ticket-Beschreibung, behebt mechanisch Eindeutiges in einem
-  eigenen Commit, meldet den Rest. Gibt bewusst kein Urteil ab.
-- post-merge-Git-Hook, von `/board-init` installiert — verifiziert an einem
-  echten Merge
-- `marketplace.json`
+```
+/scraude "Notizen-Feature: Datenmodell, REST-API und Editor im Frontend, offline-fähig"
+```
 
-Offen:
-- Installation als echtes Plugin in Claude Code noch nicht getestet
-  (bisher nur die Skripte direkt)
-- Nach einem Plugin-Update zeigt der Git-Hook auf den alten Pfad; `/board-init`
-  muss dann einmal erneut laufen. Der Hook meldet das selbst.
+Statt eines Pfads oder Links zu einem Design geht auch Freitext. Claude
+zerlegt die Aufgabe, setzt Abhängigkeiten und Prioritäten und legt dir
+Ticket-Schnitt **und** Sprint-Vorschlag in einer Liste vor.
 
-## Speicherort von `board.json`
+**3. Bestätigen — der Rest läuft**
 
-Das Board liegt lokal unter `.claude/board.json` und ist **bewusst nicht
-versioniert** — `/board-init` trägt es in die `.gitignore` ein.
+Nach deiner Bestätigung startet das erste Ticket auf einem eigenen Branch.
+Ab jetzt ist Scraude ein **Modus**: Du arbeitest normal mit Claude, und der
+Ablauf greift von selbst, auch in der nächsten Session.
 
-Ursprünglich sah der Plan (Abschnitt 3) ein mit dem Code versioniertes Board
-vor. Der End-to-End-Test hat gezeigt, dass das mit dem Ticket-Workflow
-kollidiert: die Datei ändert sich bei praktisch jeder Aktion, dadurch
-- blockierte sie `git checkout` bei uncommitteten Änderungen,
-- landete Board-Rauschen in jedem PR,
-- drohte bei jedem Merge ein Konflikt in derselben Datei,
-- ließ der post-merge-Hook den Worktree direkt wieder dirty zurück.
+**4. Board ansehen**
 
-Für die Zielgruppe von v1 (Einzelentwickler) ist das Board damit
-Arbeitsstand, nicht Projektinhalt. Konsequenz: es wird nicht mitgeklont und
-nicht geteilt — beides für einen einzelnen Entwickler ohne Belang.
+```
+/scraude:board
+```
 
-Die Umgebungsvariable `SCRAUDE_BOARD` überschreibt den Pfad. Damit bleibt die
-Tür für ein später geteiltes Board offen, ohne dass dafür etwas umgebaut
-werden muss — nötig wäre dann zusätzlich eine Merge-Strategie für die Datei.
+```markdown
+## BACKLOG (1)
+
+| ID    | Titel                       | Typ     | Prio | Größe | A/K          | Alter  |
+|-------|-----------------------------|---------|------|-------|--------------|--------|
+| T-005 | Dark Mode für Einstellungen | feature | 4    | S     | sehr_niedrig | 0 Tage |
+
+## SPRINT S-01 (active) — 0/4 fertig
+
+| ID    | Titel                         | Status      | PR |
+|-------|-------------------------------|-------------|----|
+| T-001 | Datenmodell für Notizen       | sprint      | —  |
+| T-002 | Spike: Sync-Strategie offline | in_progress | —  |
+| T-003 | REST-Endpunkte für Notizen    | sprint      | —  |
+| T-004 | Notiz-Editor im Frontend      | sprint      | —  |
+```
+
+---
+
+## So funktioniert's
+
+```mermaid
+flowchart TD
+    A["Aufgabe / Design"] -->|/scraude| B["Tickets + Sprint-Vorschlag"]
+    B -->|"✋ du bestätigst"| C["Sprint aktiv"]
+    C --> D["Ticket startet<br/>Branch feature/T-id-slug"]
+    D --> E{"Komplexität?"}
+    E -->|"sehr niedrig / niedrig"| F["ticket-implementer<br/>kleineres Modell"]
+    E -->|"mittel / hoch / sehr hoch"| G["Hauptthread<br/>im Dialog mit dir"]
+    F --> H["Vor-Review<br/>ticket-reviewer"]
+    G --> H
+    H --> I["Review-Zusammenfassung + PR"]
+    I -->|"✋ du mergst"| J["post-merge-Hook:<br/>Ticket → done"]
+    J -->|"nächstes Ticket"| D
+    J -->|"Sprint fertig"| K["/sprint-close<br/>Mini-Retro"]
+    K -->|/sprint-plan| C
+```
+
+### Was automatisch läuft und was nicht
+
+Ob etwas automatisch läuft, hängt nicht davon ab, wie wichtig es ist,
+sondern davon, ob man es **rückgängig machen kann** und ob es **nach außen
+sichtbar** ist.
+
+| Läuft ohne Rückfrage | Braucht deine Bestätigung |
+|---|---|
+| Ticket starten, Branch anlegen | Ticket-Schnitt beim Intake |
+| Nebenthemen als Tickets erfassen | PR / MR erstellen |
+| Statuswechsel auf dem Board | Merge (macht Claude nie selbst) |
+| Vor-Review samt Korrektur-Commit | Sprint schließen |
+| Definition of Ready / Done prüfen | Scope aufteilen, Folge-Ticket abspalten |
+| Nach dem Merge mit dem nächsten Ticket weitermachen | Sprint-Lock brechen |
+
+### Modellwahl nach Komplexität
+
+Jedes Ticket hat zwei getrennte Schätzungen: `groesse` (wie viel Diff,
+also wie viel Review-Aufwand) und `komplexitaet` (wie schwer die Aufgabe
+gedanklich ist). Ein Feld in 40 Dateien umzubenennen ist *groß, aber
+trivial*. Eine Race Condition zu beheben ist *klein, aber heikel*.
+
+| `komplexitaet` | Modell (Vorgabe) | Effort | Wer setzt um |
+|---|---|---|---|
+| `sehr_niedrig` | haiku | low | Subagent `ticket-implementer` |
+| `niedrig` | sonnet | low | Subagent `ticket-implementer` |
+| `mittel` | sonnet | medium | Hauptthread |
+| `hoch` | opus | high | Hauptthread, Hinweis auf `/model` |
+| `sehr_hoch` | opus | xhigh | Hauptthread, Hinweis auf `/model` |
+
+Stellt sich ein Ticket als schwerer heraus als geschätzt, **bricht der
+Implementer ab und meldet es**, statt sich durchzumogeln. Die Bewertung wird
+im Ticket korrigiert, und die Arbeit geht im Hauptthread weiter.
+
+Die Zuordnung steht im Board unter `modelle` und lässt sich pro Projekt
+anpassen, ohne das Plugin anzufassen.
+
+### Vor-Review ohne Freifahrtschein
+
+Der `ticket-reviewer` hat den Implementierungsverlauf nicht gesehen, und
+genau das ist gewollt. Er prüft, was ein generischer Code-Review nicht
+prüfen kann:
+
+- Deckt der Diff die Ticket-Beschreibung ab?
+- Ist Scope hineingekrochen?
+- Passt der Umfang zur geschätzten Größe?
+
+Er gibt **bewusst kein Urteil** ab: kein „sieht gut aus“, keine Freigabe.
+Sein Bericht soll deinen Review gezielter machen, nicht ersetzen.
+
+---
+
+## Befehle
+
+Der Einstieg ist `/scraude`. Alle anderen Befehle lassen sich qualifiziert
+(`/scraude:board`) oder kurz (`/board`) aufrufen. Die Kurzform geht, solange
+kein anderes Plugin denselben Namen belegt.
+
+| Befehl | Zweck |
+|---|---|
+| `/scraude "<Aufgabe>"` | Aufgabe zerlegen, Abhängigkeiten setzen, ersten Sprint vorschlagen |
+| `/scraude:board-init` | Board anlegen, `.gitignore` ergänzen, `post-merge`-Hook installieren |
+| `/scraude:board` | Board als Markdown-Tabelle anzeigen |
+| `/scraude:standup` | Lagemeldung: was läuft, was pausiert, was blockiert, was als Nächstes kommt |
+| `/scraude:ticket-new "<Titel>"` | Einzelnes Ticket im Backlog anlegen |
+| `/scraude:sprint-plan` | Backlog aufräumen und den nächsten Sprint planen |
+| `/scraude:ticket-start [T-<id>]` | Ticket starten; ohne ID das wichtigste nicht blockierte |
+| `/scraude:ticket-resume` | Zuletzt pausiertes Ticket wieder aufnehmen |
+| `/scraude:ticket-review [T-<id>]` | Vor-Review, Definition of Done, Zusammenfassung, PR |
+| `/scraude:sprint-close` | Sprint abschließen, Mini-Retro |
+
+Du musst diese Befehle nicht kennen. Sobald ein Board existiert, startet,
+pausiert und erfasst Claude Tickets von selbst. Die Befehle sind
+Einstiegspunkte und Ansichten.
+
+---
+
+## Prinzipien
+
+- **Sprints sind Ticket-Sets, keine Zeiträume.** Ein Sprint ist fertig, wenn
+  alle seine Tickets gemerged sind.
+- **Priorität heißt Risiko und Wert, nicht Reihenfolge.** Die Reihenfolge
+  ergibt sich aus `blockiert_von`. Ein Spike, an dem fünf Tickets hängen,
+  gehört nach vorn, und `board-store.js impact` rechnet das aus.
+- **Ein Ticket aktiv, Dringendes pausiert.** Ein Hotfix unterbricht nichts:
+  Das laufende Ticket wird pausiert, Branch und Kontext bleiben erhalten.
+- **Definition of Ready / Done** als feste Checklisten statt Bauchgefühl.
+- **Mechanisches läuft über Skripte.** Status setzen, Board rendern,
+  Blocker prüfen: Das erledigen deterministische Node-Skripte, keine
+  Tokens. Claude wird nur dort eingesetzt, wo Urteilsvermögen gefragt ist.
+- **Stichpunkte statt Fließtext**, überall dort, wo du etwas prüfen oder
+  entscheiden sollst.
+
+Die vollständige Begründung jeder Entscheidung steht in
+[`scrum-board-plugin-plan.md`](scrum-board-plugin-plan.md).
+
+---
+
+## Deine Daten
+
+- Das Board ist eine einzige JSON-Datei: `.claude/board.json` in deinem
+  Repo.
+- Sie ist **bewusst nicht versioniert**. `/board-init` trägt sie in die
+  `.gitignore` ein, damit sie nicht in jedem PR und jedem Merge auftaucht.
+- Scraude spricht mit keinem Dienst. PRs laufen über deine vorhandene
+  `gh`- bzw. `glab`-Anmeldung.
+- Mit der Umgebungsvariable `SCRAUDE_BOARD` lässt sich der Pfad
+  überschreiben, etwa für ein Board außerhalb des Repos.
+
+---
+
+## FAQ
+
+**Muss ich Scrum kennen?**
+Nein. Scraude übernimmt nur das, was bei der Arbeit mit Claude hilft:
+Tickets, Sprints als feste Pakete, Standup, Retro. Meetings, Story Points
+und Rollen gibt es nicht.
+
+**Funktioniert es mit GitLab?**
+Ja, über `glab mr create`. Ohne `gh` und ohne `glab` merged Scraude lokal,
+sobald du im Chat zustimmst.
+
+**Was passiert in Repos ohne Board?**
+Nichts. Die Hooks bleiben stumm, solange kein `.claude/board.json` existiert.
+
+**Kann ich Scraude im Team nutzen?**
+Version 1 ist für Einzelentwickler gedacht, das Board ist lokaler
+Arbeitsstand. Über `SCRAUDE_BOARD` lässt sich ein gemeinsamer Pfad setzen;
+eine Merge-Strategie für gleichzeitige Änderungen gibt es aber noch nicht.
+
+**Warum ist alles auf Deutsch?**
+Scraude ist auf Deutsch entstanden, und Befehle, Ausgaben und Feldnamen sind
+deutsch. Eine englische Version ist denkbar. Wenn du sie brauchst, schreib
+ein Issue.
+
+---
+
+## Bekannte Einschränkungen
+
+- **Nach einem Plugin-Update** zeigt der `post-merge`-Hook noch auf den alten
+  Plugin-Pfad. `/scraude:board-init` einmal erneut ausführen, dann stimmt es
+  wieder. Der Hook meldet das selbst.
+- Der Hook erkennt Tickets am Branch-Namen `feature/T-<id>-…` im
+  Merge-Commit. Bei **Squash- oder Rebase-Merges** ohne diesen Namen in der
+  Commit-Nachricht wird das Ticket nicht automatisch auf `done` gesetzt.
+
+---
+
+## Mitmachen
+
+Issues und Pull Requests sind willkommen. Wie das Plugin aufgebaut ist und
+wie man es lokal testet, steht in [`docs/ENTWICKLUNG.md`](docs/ENTWICKLUNG.md).
+
+## Lizenz
+
+[MIT](LICENSE) © Johannes Alecke

@@ -1,7 +1,9 @@
 {
   "name": "scraude-marketplace",
+  "description": "Scraude: Scrum-Ticket-Board für Claude Code",
   "owner": {
-    "name": "Johannes Alecke"
+    "name": "Johannes Alecke",
+    "url": "https://github.com/DerJojo11"
   },
   "plugins": [
     {
