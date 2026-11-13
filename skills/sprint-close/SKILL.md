@@ -19,8 +19,18 @@ allowed-tools:
    - Aufteilung nach `herkunft` (manuell / aktiv / passiv entstanden)
    - Anzahl offener Backlog-Tickets
    - Alter des ältesten offenen Backlog-Tickets
-3. Kurze Einordnung ist hier erlaubt — z. B. wenn auffällig viele Tickets
+   - **Repo-Chats**: wie viele gestartet wurden (`chats_gestartet`, auch je
+     Repo) und wie viele gescheitert sind — davon wie viele am Limit
+     (`chats_am_limit`). Viele Chats für wenige Tickets oder wiederholtes
+     Scheitern am Limit heißt: die Bündel waren zu groß geschnitten.
+3. **Repo-Chats des Sprints archivieren.** `close-sprint` listet die
+   Kandidaten auf (fertige und gescheiterte Chats). Archiviert wird mit
+   `archive_session` und **erst nach Bestätigung des Users** — außer er hat
+   sie für diesen Sprint pauschal erteilt. Danach je Chat
+   `board-store.js chat <session-id> archiviert`, damit der Sprint es
+   festhält. Chats mit noch offenen PRs bleiben stehen, bis gemergt ist.
+4. Kurze Einordnung ist hier erlaubt — z. B. wenn auffällig viele Tickets
    passiv entstanden sind oder das Backlog spürbar altert.
-4. Hinweis auf den nächsten Schritt: `/sprint-plan`.
+5. Hinweis auf den nächsten Schritt: `/sprint-plan`.
 
 Nur Zahlen sehen, ohne zu schließen: `board-store.js retro`.

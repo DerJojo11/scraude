@@ -36,6 +36,10 @@ Alles Mechanische und alles lokal Umkehrbare:
 - **Nach dem Merge weitermachen**: der post-merge-Hook setzt das Ticket auf
   `done`. Dann mit dem nächsten weitermachen, statt zu fragen, ob man darf.
 - **Nebenthemen erfassen**: passiv/aktiv nach Kernprinzip 2, laufend.
+- **Repo-Chats für den Sprint starten**: nach `plan-sprint` ohne weitere
+  Commands, mit Briefing und passendem Modell, höchstens
+  `config.maxParallelChats` gleichzeitig (siehe unten). Ein Chat ist
+  jederzeit beendbar — anders als ein PR wirkt er nicht nach außen.
 - **Statusübergänge und Board-Schreibvorgänge** über die Skripte.
 - **Vor-Review** durch `ticket-reviewer` bei jedem Ticket, samt dessen
   eigenen Korrektur-Commit.
@@ -54,6 +58,8 @@ Was nach außen wirkt oder schwer zurückzuholen ist:
 - **Scope aufteilen**: ein Folge-Ticket abspalten ändert die Planung, das ist
   eine Entscheidung des Users.
 - **Sprint-Lock brechen**: nie eigenmächtig.
+- **Repo-Chats archivieren**: ein archivierter Chat ist für den User weg.
+  Außer er hat das Archivieren für den Sprint pauschal freigegeben.
 
 Die Grenze verläuft nicht bei "wichtig", sondern bei **Umkehrbarkeit und
 Außenwirkung**. Ein Branch ist beides nicht — ein PR ist beides.
@@ -93,6 +99,104 @@ Falschbewertung, die früh auffällt — genau der Zweck. Dann:
 
 Nie: den Implementer mit einem größeren Modell erneut beauftragen. War ein
 Ticket zu schwer für die Delegation, ist es zu schwer für die Delegation.
+
+## Koordinator und Repo-Chats
+
+Gilt in Projekten mit mehreren Repos (App, Backend, Web): ein
+**Koordinator-Chat** hält das Board, verteilt die Arbeit und prüft die PRs.
+Die Umsetzung passiert in **Repo-Chats** — je ein eigener Chat pro Repo.
+
+Der Grund für diesen Abschnitt ist eine Rechnung, nicht Geschmack:
+Repo-Chats, die über viele Sprints weiterlaufen, kamen auf 1.900 bis 2.700
+Nachrichten. Jede neue Runde liest diesen Verlauf mit — das war der größte
+Kostenblock, und mehrere Chats sind mitten im Sprint am 5-Stunden-Limit
+gescheitert. Ein frischer Chat mit kurzem Briefing hat dieselbe Arbeit
+sauber und deutlich günstiger erledigt. Der alte Verlauf war also nicht
+Kontext, sondern Ballast.
+
+1. **Frische Chats pro Sprint.** Nach `plan-sprint` startet der Koordinator
+   für jedes Repo mit Tickets im Sprint einen **neuen** Chat:
+   `start_session`, `context: "fresh"`, `cwd` ist der Repo-Ordner aus
+   `config.repos`. Keinen Chat aus dem Vorsprint weiterverwenden. Die Chats
+   des Vorsprints werden archiviert, sobald ihre PRs gemergt sind.
+
+2. **Briefing aus dem Board, nicht aus dem Verlauf.** Das Briefing liefert
+   das Skript:
+
+   `node "${CLAUDE_PLUGIN_ROOT}/scripts/board-store.js" briefing <repo>`
+
+   (oder mit Ticket-IDs statt Repo-Name, wenn nur ein Teil hineingehört).
+   Es enthält Repo, Base-Branch, Merge-Stil, die Tickets mit Beschreibung,
+   vereinbarte Schnittstellen, die Projektregeln, das Meldeformat und die
+   Grenzen — und den Befehl, mit dem der Chat den **Board-Stand selbst
+   liest**, statt ihn im Briefing doppelt zu führen. Den Text unverändert
+   als Prompt übergeben, nichts aus dem eigenen Verlauf dazuschreiben.
+
+   Zwei Felder kann das Skript nicht wissen und muss einmal pro Projekt
+   bekommen, sonst steht im Briefing ein Platzhalter:
+   `config.projektregeln` (Commit-Footer, gh-Konto, verbotene Git-Befehle,
+   Prod-Sperre — aus CLAUDE.md und Memory) und `config.koordinator_chat`
+   (die eigene Session-ID, an die gemeldet wird). Beides per `config`.
+
+3. **Modell nach A/K.** Welches Modell der neue Chat bekommt, steht im
+   Kopf des Briefings (`model:`) — gerechnet über das **schwerste** Ticket
+   im Bündel. `sehr_niedrig`, `niedrig` und `mittel` in Größe XS/S laufen mit
+   Sonnet, alles darüber mit dem Modell des Koordinators (`inherit`). Fehlt
+   eine Bewertung, gibt es `inherit`: raten wäre teurer als das größere
+   Modell. Haiku steht bewusst nicht in der Tabelle — es kommt nur für rein
+   mechanische Arbeit in Frage und wird dann bewusst in
+   `config.chat_modelle` gesetzt.
+
+4. **Parallelität begrenzen.** Höchstens `config.maxParallelChats` Chats
+   gleichzeitig (Standard 2). **Vor** jedem Start prüfen:
+
+   `node "${CLAUDE_PLUGIN_ROOT}/scripts/board-store.js" chats`
+
+   zeigt, wer woran arbeitet, wie viele Slots frei sind und welche Tickets
+   noch ohne lebenden Chat warten. Keine freien Slots → warten, bis ein
+   Chat fertig ist. `blockiert_von` bleibt dabei maßgeblich: ein blockiertes
+   Ticket geht in keinen Chat, auch wenn ein Slot frei ist.
+
+   Jeden gestarteten Chat sofort eintragen:
+   `chat <session-id> <repo> '["T-101","T-102"]'`. Erst damit weiß
+   der Koordinator, welcher Chat woran sitzt — und welchen er nach dem Merge
+   archivieren kann.
+
+5. **Ein Chat pro Ticket-Kette, wenn der Verlauf wächst.** Überschreitet ein
+   Repo-Chat `config.chatMessageLimit` (Standard 400 Nachrichten), schließt
+   er sein laufendes Ticket ab und beginnt kein neues — das steht in seinem
+   Briefing. Für das nächste Ticket startet der Koordinator einen frischen
+   Chat. Ein Chat pro Sprint ist die Regel, kein Dogma: lieber ein Chat
+   mehr als ein Verlauf, der die nächste Runde teuer macht.
+
+6. **Prüftiefe nach Ticket-Art.** Die Kette wird nach Art zugeschnitten,
+   nicht pauschal abgespult:
+   - Mutationsproben (oder was das Projekt an entsprechender Prüfung
+     vorsieht) nur bei **Logik**-Tickets — nicht bei reiner Optik, Texten
+     oder Versionssprüngen.
+   - Bei **Optik**-Tickets genügt ein Nachher-Bild. Vorher/nachher braucht
+     es nur, wenn vor dem Bau eine Freigabe eingeholt wird.
+
+7. **Knappe Meldungen in beide Richtungen.**
+   - Repo-Chats melden dem Koordinator nur: Ergebnis, PR-Link, offene
+     Fragen, Nebenbefunde — jeweils mit Ticket-ID, höchstens 3 Zeilen plus
+     Link. Keine Diff-Zusammenfassung, kein Verlauf.
+   - Im Review liest der Koordinator den **Diff ohne Testdateien** und
+     verlässt sich für die Tests auf die CI. Den Diff zweimal zu lesen,
+     einmal im Chat und einmal im PR, zahlt niemand.
+
+8. **Übergabe bei Abbruch.** Scheitert ein Chat (Limit, Fehler):
+   `chat <session-id> limit` (oder `fehler`), dann einen frischen
+   Chat im **selben Ordner auf demselben Branch** starten, mit
+   `briefing T-xxx --uebergabe`. Dieses Briefing sagt dem Nachfolger, dass
+   er den Stand aus `git status` und dem Branch liest — nicht aus dem alten
+   Verlauf, den es nicht mehr gibt. **Uncommittete Arbeit wird nie
+   verworfen**, nichts zurückgerollt.
+
+Das Archivieren selbst macht der Client (`archive_session`) und **braucht
+die Bestätigung des Users**, außer er hat sie für den Sprint pauschal
+erteilt. Danach `chat <session-id> archiviert`, damit der Sprint es festhält.
+`/sprint-close` listet die Kandidaten von selbst auf.
 
 ## Kernregeln
 

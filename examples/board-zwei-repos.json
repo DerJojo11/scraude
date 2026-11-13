@@ -1,0 +1,187 @@
+{
+  "tickets": {
+    "T-001": {
+      "title": "POST /devices für Push-Token",
+      "beschreibung": "- Endpoint nimmt {token, platform} an\n- speichert pro User, idempotent bei gleichem Token\n- antwortet 201 mit {id}",
+      "status": "in_progress",
+      "typ": "feature",
+      "groesse": "M",
+      "komplexitaet": "mittel",
+      "herkunft": "manuell",
+      "prioritaet": 1,
+      "sprint_id": "S-01",
+      "branch": "feature/T-001-post-devices-fuer-push-token",
+      "pr_url": null,
+      "repo": "backend",
+      "chat": "local_backend",
+      "ueberschneidet_mit": [],
+      "blockiert_von": [],
+      "erstellt_waehrend": null,
+      "erstellt_am": "2026-11-13T15:56:06.845Z",
+      "notizen": []
+    },
+    "T-002": {
+      "title": "Push-Registrierung beim App-Start",
+      "beschreibung": "- Token beim Start holen und an POST /devices senden\n- Fehlschlag still loggen, kein Dialog\n- kein Retry-Sturm: höchstens ein Versuch pro Start",
+      "status": "sprint",
+      "typ": "feature",
+      "groesse": "M",
+      "komplexitaet": "mittel",
+      "herkunft": "manuell",
+      "prioritaet": 2,
+      "sprint_id": "S-01",
+      "branch": null,
+      "pr_url": null,
+      "repo": "app",
+      "chat": null,
+      "ueberschneidet_mit": [],
+      "blockiert_von": [
+        "T-001"
+      ],
+      "erstellt_waehrend": null,
+      "erstellt_am": "2026-11-13T15:56:06.846Z",
+      "notizen": []
+    },
+    "T-003": {
+      "title": "Onboarding-Screen: Abstände und Button-Farbe",
+      "beschreibung": "- Abstände auf das 8er-Raster\n- Primary-Button auf die Markenfarbe\n- reine Optik, keine Logik",
+      "status": "sprint",
+      "typ": "feature",
+      "groesse": "S",
+      "komplexitaet": "niedrig",
+      "herkunft": "manuell",
+      "prioritaet": 3,
+      "sprint_id": "S-01",
+      "branch": null,
+      "pr_url": null,
+      "repo": "app",
+      "chat": "local_app",
+      "ueberschneidet_mit": [],
+      "blockiert_von": [],
+      "erstellt_waehrend": null,
+      "erstellt_am": "2026-11-13T15:56:06.846Z",
+      "notizen": []
+    },
+    "T-004": {
+      "title": "Abhängigkeiten auf aktuelle Minor-Versionen",
+      "beschreibung": "- Lockfile aktualisieren\n- Tests müssen durchlaufen",
+      "status": "sprint",
+      "typ": "chore",
+      "groesse": "XS",
+      "komplexitaet": "sehr_niedrig",
+      "herkunft": "manuell",
+      "prioritaet": 4,
+      "sprint_id": "S-01",
+      "branch": null,
+      "pr_url": null,
+      "repo": "backend",
+      "chat": "local_backend",
+      "ueberschneidet_mit": [],
+      "blockiert_von": [],
+      "erstellt_waehrend": null,
+      "erstellt_am": "2026-11-13T15:56:06.847Z",
+      "notizen": []
+    }
+  },
+  "sprints": {
+    "S-01": {
+      "status": "active",
+      "tickets": [
+        "T-001",
+        "T-002",
+        "T-003",
+        "T-004"
+      ],
+      "erstellt_am": "2026-11-13T15:56:06.879Z",
+      "abgeschlossen_am": null,
+      "chats": [
+        {
+          "chat": "local_backend",
+          "repo": "backend",
+          "tickets": [
+            "T-001",
+            "T-004"
+          ],
+          "gestartet_am": "2026-11-13T15:56:06.914Z",
+          "gescheitert": null,
+          "archiviert_am": null
+        },
+        {
+          "chat": "local_app",
+          "repo": "app",
+          "tickets": [
+            "T-003"
+          ],
+          "gestartet_am": "2026-11-13T15:56:06.948Z",
+          "gescheitert": null,
+          "archiviert_am": null
+        }
+      ]
+    }
+  },
+  "aktueller_sprint": "S-01",
+  "aktuelles_ticket": "T-001",
+  "pausierte_tickets": [],
+  "modelle": {
+    "sehr_niedrig": {
+      "model": "haiku",
+      "effort": "low"
+    },
+    "niedrig": {
+      "model": "sonnet",
+      "effort": "low"
+    },
+    "mittel": {
+      "model": "sonnet",
+      "effort": "medium"
+    },
+    "hoch": {
+      "model": "opus",
+      "effort": "high"
+    },
+    "sehr_hoch": {
+      "model": "opus",
+      "effort": "xhigh"
+    }
+  },
+  "config": {
+    "repos": {
+      "app": {
+        "pfad": "/Users/du/projekt/app",
+        "base_branch": "main",
+        "merge_stil": "squash",
+        "schnittstellen": [
+          "Push-Token kommt als POST /devices {token, platform} — Vertrag steht, nicht ändern"
+        ]
+      },
+      "backend": {
+        "pfad": "/Users/du/projekt/backend",
+        "base_branch": "develop",
+        "merge_stil": "merge",
+        "schnittstellen": [
+          "POST /devices antwortet 201 mit {id} — vom App-Team erwartet"
+        ]
+      }
+    },
+    "maxParallelChats": 2,
+    "chatMessageLimit": 400,
+    "koordinator_chat": "local_koordinator",
+    "projektregeln": [
+      "Commit-Footer: Co-Authored-By: Claude",
+      "gh-Konto: projekt-bot",
+      "Kein git push --force, kein rebase auf geteilten Branches",
+      "Prod-Datenbank ist gesperrt — nur Staging"
+    ],
+    "chat_modelle": {
+      "sehr_niedrig": "sonnet",
+      "niedrig": "sonnet",
+      "mittel": "sonnet",
+      "hoch": "inherit",
+      "sehr_hoch": "inherit"
+    },
+    "chat_sonnet_groessen": [
+      "XS",
+      "S"
+    ]
+  }
+}

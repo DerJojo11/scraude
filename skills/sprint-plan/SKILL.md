@@ -35,4 +35,19 @@ allowed-tools:
    `sprint_id` und aktualisiert `aktueller_sprint` in einem Schritt. Läuft
    noch ein Sprint, verweigert das Skript — dann erst `/sprint-close`.
 
+7. **Mehrere Repos im Projekt?** Dann direkt im Anschluss die frischen
+   Repo-Chats starten — ohne weitere Rückfrage, der Ablauf steht im Skill
+   board-management, Abschnitt „Koordinator und Repo-Chats":
+   - `board-store.js chats` — wie viele Slots sind frei
+     (`config.maxParallelChats`), welche Tickets warten ohne Chat?
+   - je Repo `board-store.js briefing <repo>` — Prompt und Modell stehen
+     darin
+   - `start_session` mit `context: "fresh"`, `cwd` aus `config.repos`, dem
+     Briefing als Prompt und dem empfohlenen Modell
+   - `board-store.js chat <session-id> <repo> '["T-101"]'`
+
+   Tragen die Sprint-Tickets kein `repo`, gehört das vor dem Start
+   nachgetragen (`update-ticket T-101 '{"repo":"app"}'`) — sonst
+   verweigert das Briefing.
+
 Ab hier gilt der Sprint-Lock (Kernprinzip 1): alles Neue geht ins Backlog.
