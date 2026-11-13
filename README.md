@@ -209,6 +209,31 @@ prüfen kann:
 Er gibt **bewusst kein Urteil** ab: kein „sieht gut aus“, keine Freigabe.
 Sein Bericht soll deinen Review gezielter machen, nicht ersetzen.
 
+### Mehrere Repos: frische Chats statt langer Verläufe
+
+Hat ein Projekt mehrere Repos (App, Backend, Web), hält ein
+**Koordinator-Chat** das Board und verteilt die Arbeit auf **je einen Chat
+pro Repo**. Diese Chats laufen nicht über Sprints hinweg weiter — sie werden
+pro Sprint neu gestartet, weil ein langer Verlauf in jeder neuen Runde
+mitgelesen wird und irgendwann teurer ist als die Arbeit selbst.
+
+Damit ein frischer Chat ohne den alten Verlauf auskommt, baut Scraude sein
+Briefing aus dem Board: Repo, Base-Branch, die Tickets mit Beschreibung,
+vereinbarte Schnittstellen, deine Projektregeln, das Meldeformat — und den
+Befehl, mit dem der Chat den Board-Stand selbst liest.
+
+- Das Modell folgt der Komplexität des schwersten Tickets im Bündel.
+- Höchstens `config.maxParallelChats` Chats laufen gleichzeitig (Standard 2);
+  blockierte Tickets warten, auch wenn ein Platz frei wäre.
+- Bricht ein Chat ab, briefet der Nachfolger auf demselben Branch weiter —
+  den Stand liest er aus `git status`, nicht aus dem verlorenen Verlauf.
+  Uncommittete Arbeit wird nie verworfen.
+- Gemergte Tickets führen zum Archivieren ihres Chats, nach deiner
+  Bestätigung.
+
+Durchgespielt an einem Beispiel mit zwei Repos:
+[`examples/zwei-repos.md`](examples/zwei-repos.md).
+
 ---
 
 ## Befehle
