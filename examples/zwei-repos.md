@@ -237,13 +237,20 @@ Archivieren erst nach Bestätigung des Users.
 Vier Tickets, vier Chats, einer am Limit gescheitert — das ist die Zahl, auf
 die es ankommt: wäre sie hoch, wären die Bündel zu groß geschnitten.
 
-Archiviert werden die Chats im Client (`archive_session`), **nach
-Bestätigung des Users**. Festgehalten wird es danach:
+Abgeschlossen werden die Chats im Client, **nach Bestätigung des Users** —
+archiviert (Standard) oder gelöscht, je nach `config.chatAbschluss`.
+Festgehalten wird es danach:
 
 ```
 $ board-store.js chat local_backend archiviert
 Chat local_backend (backend, S-01) als archiviert vermerkt.
+
+$ board-store.js chat local_app geloescht
+Chat local_app (app, S-01) als geloescht vermerkt.
 ```
+
+Löschen ist endgültig und passiert nur nach dem Merge — vorher ist der Chat
+die einzige Stelle, an der steht, warum etwas so gebaut wurde.
 
 Der nächste Sprint beginnt wieder mit frischen Chats. Keiner von diesen vier
 sieht den nächsten Sprint — das ist der Punkt.

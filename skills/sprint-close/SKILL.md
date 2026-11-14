@@ -23,12 +23,16 @@ allowed-tools:
      Repo) und wie viele gescheitert sind — davon wie viele am Limit
      (`chats_am_limit`). Viele Chats für wenige Tickets oder wiederholtes
      Scheitern am Limit heißt: die Bündel waren zu groß geschnitten.
-3. **Repo-Chats des Sprints archivieren.** `close-sprint` listet die
-   Kandidaten auf (fertige und gescheiterte Chats). Archiviert wird mit
-   `archive_session` und **erst nach Bestätigung des Users** — außer er hat
-   sie für diesen Sprint pauschal erteilt. Danach je Chat
-   `board-store.js chat <session-id> archiviert`, damit der Sprint es
-   festhält. Chats mit noch offenen PRs bleiben stehen, bis gemergt ist.
+3. **Repo-Chats des Sprints abschließen.** `close-sprint` listet die
+   Kandidaten auf (fertige und gescheiterte Chats). Was mit ihnen passiert,
+   sagt `config.chatAbschluss`: `archivieren` (Standard, `archive_session`)
+   oder `loeschen` (`delete_session`, endgültig). Beides **erst nach
+   Bestätigung des Users** — außer er hat sie für diesen Sprint pauschal
+   erteilt; beim Löschen zusätzlich nur, wenn der PR gemergt ist und keine
+   Frage aus der Meldung des Chats offen steht (siehe board-management).
+   Danach je Chat `board-store.js chat <session-id> archiviert` bzw.
+   `… geloescht`, damit der Sprint es festhält. Chats mit noch offenen PRs
+   bleiben stehen, bis gemergt ist.
 4. Kurze Einordnung ist hier erlaubt — z. B. wenn auffällig viele Tickets
    passiv entstanden sind oder das Backlog spürbar altert.
 5. Hinweis auf den nächsten Schritt: `/sprint-plan`.

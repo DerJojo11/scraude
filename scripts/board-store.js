@@ -115,7 +115,13 @@ const DEFAULT_CONFIG = {
   koordinator_chat: null,
   projektregeln: [],
   chat_modelle: DEFAULT_CHAT_MODELLE,
-  chat_sonnet_groessen: CHAT_SONNET_GROESSEN
+  chat_sonnet_groessen: CHAT_SONNET_GROESSEN,
+  // Was mit einem fertigen Repo-Chat passiert: "archivieren" oder
+  // "loeschen". Standard ist archivieren, weil Löschen endgültig ist — der
+  // Verlauf ist dann weg, auch wenn drei Wochen später im PR eine Frage
+  // auftaucht, die nur dieser Chat beantworten konnte. Beides braucht die
+  // Bestätigung des Users.
+  chatAbschluss: 'archivieren'
 };
 
 const EMPTY_BOARD = {
@@ -961,15 +967,27 @@ function chatFailed(board, chat, grund = 'fehler') {
   return { chat, grund, repo: eintrag.repo, tickets: eintrag.tickets, offen };
 }
 
-/** Archivierung festhalten — archiviert wird der Chat außerhalb, im Client. */
-function archiveChat(board, chat) {
+/**
+ * Abschluss eines Chats festhalten — erledigt wird er außerhalb, im Client
+ * (`archive_session` bzw. `delete_session`).
+ *
+ * `art` ist `archiviert` oder `geloescht`. Das Board hält beides fest, weil
+ * es ein Unterschied ist: ein archivierter Chat ist nachlesbar, ein
+ * gelöschter nicht mehr. Steht hier `geloescht`, ist später nicht mehr zu
+ * klären, was in dem Chat besprochen wurde — nur noch, dass es ihn gab.
+ */
+function archiveChat(board, chat, art = 'archiviert') {
+  if (!['archiviert', 'geloescht'].includes(art)) {
+    throw new Error(`Unbekannte Art "${art}" — erlaubt: archiviert, geloescht.`);
+  }
   const treffer = Object.entries(board.sprints)
     .map(([id, s]) => ({ id, eintrag: (s.chats || []).find((c) => c.chat === chat) }))
     .find((x) => x.eintrag);
   if (!treffer) throw new Error(`Chat ${chat} ist in keinem Sprint eingetragen.`);
   treffer.eintrag.archiviert_am = new Date().toISOString();
+  treffer.eintrag.art = art;
   writeBoard(board);
-  return { chat, sprint: treffer.id, repo: treffer.eintrag.repo };
+  return { chat, sprint: treffer.id, repo: treffer.eintrag.repo, art };
 }
 
 /**
@@ -987,7 +1005,9 @@ function chatOverview(board, sprintId = board.aktueller_sprint) {
       (id) => board.tickets[id] && board.tickets[id].status !== 'done'
     );
     const status = c.archiviert_am
-      ? 'archiviert'
+      ? c.art === 'geloescht'
+        ? 'geloescht'
+        : 'archiviert'
       : c.gescheitert
         ? 'gescheitert'
         : offen.length
@@ -1245,7 +1265,7 @@ Koordinator und Repo-Chats:
   chats                               wer arbeitet woran, freie Slots
   chat <chat-id> <repo> '["T-001"]'   gestarteten Chat eintragen
   chat <chat-id> limit|fehler         als gescheitert markieren
-  chat <chat-id> archiviert           Archivierung festhalten`;
+  chat <chat-id> archiviert|geloescht Abschluss festhalten`;
 
 if (require.main === module) {
   const [, , cmd, ...args] = process.argv;
@@ -1407,13 +1427,21 @@ if (require.main === module) {
           );
         }
         if (result.archivierbare_chats.length) {
-          console.log('Chats dieses Sprints, die archiviert werden können:');
+          const art =
+            boardConfig(board).chatAbschluss === 'loeschen'
+              ? 'gelöscht'
+              : 'archiviert';
+          console.log(`Chats dieses Sprints, die ${art} werden können:`);
           result.archivierbare_chats.forEach((c) =>
             console.log(
               `  ${c.repo}  ${c.chat}${c.gescheitert ? ` [gescheitert: ${c.gescheitert}]` : ''}`
             )
           );
-          console.log('Archivieren erst nach Bestätigung des Users.');
+          console.log(
+            art === 'gelöscht'
+              ? 'Löschen ist endgültig — erst nach ausdrücklicher Bestätigung des Users.'
+              : 'Archivieren erst nach Bestätigung des Users.'
+          );
         }
         console.log(JSON.stringify(result.retro, null, 2));
         break;
@@ -1485,14 +1513,14 @@ if (require.main === module) {
         const [chatId, was, ...rest] = args;
         if (!chatId || !was) {
           throw new Error(
-            'chat braucht eine Chat-ID und dann <repo> + Tickets, "limit", "fehler" oder "archiviert".'
+            'chat braucht eine Chat-ID und dann <repo> + Tickets, "limit", "fehler", "archiviert" oder "geloescht".'
           );
         }
 
-        if (was === 'archiviert') {
-          const result = archiveChat(board, chatId);
+        if (was === 'archiviert' || was === 'geloescht') {
+          const result = archiveChat(board, chatId, was);
           console.log(
-            `Chat ${result.chat} (${result.repo}, ${result.sprint}) als archiviert vermerkt.`
+            `Chat ${result.chat} (${result.repo}, ${result.sprint}) als ${result.art} vermerkt.`
           );
           break;
         }
@@ -1513,10 +1541,19 @@ if (require.main === module) {
           break;
         }
 
+        // Ohne Ticket-Liste war das zweite Argument als Zustandswort
+        // gemeint — dann ist es ein Tippfehler, kein Repo-Name.
+        if (!rest[0]) {
+          throw new Error(
+            `"${was}" ist weder ein Zustand (limit, fehler, archiviert, geloescht) ` +
+              'noch ein Repo mit Ticket-Liste.'
+          );
+        }
+
         const result = registerChat(board, {
           repo: was,
           chat: chatId,
-          tickets: JSON.parse(rest[0] || '[]')
+          tickets: JSON.parse(rest[0])
         });
         console.log(
           `Chat ${result.chat} für ${result.repo} eingetragen: ${result.tickets.join(', ')}`

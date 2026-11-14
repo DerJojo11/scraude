@@ -229,7 +229,8 @@ Befehl, mit dem der Chat den Board-Stand selbst liest.
   den Stand liest er aus `git status`, nicht aus dem verlorenen Verlauf.
   Uncommittete Arbeit wird nie verworfen.
 - Gemergte Tickets führen zum Archivieren ihres Chats, nach deiner
-  Bestätigung.
+  Bestätigung. Wenn du `config.chatAbschluss` auf `loeschen` stellst, wird er
+  stattdessen gelöscht — endgültig, deshalb nicht der Standard.
 
 Durchgespielt an einem Beispiel mit zwei Repos:
 [`examples/zwei-repos.md`](examples/zwei-repos.md).

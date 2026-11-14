@@ -58,8 +58,9 @@ Was nach außen wirkt oder schwer zurückzuholen ist:
 - **Scope aufteilen**: ein Folge-Ticket abspalten ändert die Planung, das ist
   eine Entscheidung des Users.
 - **Sprint-Lock brechen**: nie eigenmächtig.
-- **Repo-Chats archivieren**: ein archivierter Chat ist für den User weg.
-  Außer er hat das Archivieren für den Sprint pauschal freigegeben.
+- **Repo-Chats archivieren oder löschen**: ein archivierter Chat ist für den
+  User weg, ein gelöschter unwiederbringlich. Außer er hat es für den Sprint
+  pauschal freigegeben.
 
 Die Grenze verläuft nicht bei "wichtig", sondern bei **Umkehrbarkeit und
 Außenwirkung**. Ein Branch ist beides nicht — ein PR ist beides.
@@ -193,10 +194,30 @@ Kontext, sondern Ballast.
    Verlauf, den es nicht mehr gibt. **Uncommittete Arbeit wird nie
    verworfen**, nichts zurückgerollt.
 
-Das Archivieren selbst macht der Client (`archive_session`) und **braucht
-die Bestätigung des Users**, außer er hat sie für den Sprint pauschal
-erteilt. Danach `chat <session-id> archiviert`, damit der Sprint es festhält.
+### Archivieren oder löschen
+
+Was mit einem fertigen Chat passiert, steht in `config.chatAbschluss`:
+
+- **`archivieren`** (Standard): `archive_session`. Der Chat ist aus der
+  Seitenleiste verschwunden, aber nachlesbar. Er kostet nichts — gelesen
+  wird ein Verlauf nur, wenn der Chat weiterläuft.
+- **`loeschen`**: `delete_session`. Endgültig, auch für den User.
+
+Beides **braucht die Bestätigung des Users**, außer er hat sie für den
+Sprint pauschal erteilt. Danach `chat <session-id> archiviert` bzw.
+`chat <session-id> geloescht`, damit der Sprint es festhält.
 `/sprint-close` listet die Kandidaten von selbst auf.
+
+Beim Löschen zusätzlich:
+
+- Nur **nach dem Merge**. Vorher ist der Chat die einzige Stelle, an der
+  steht, warum etwas so gebaut wurde — ein PR-Kommentar drei Wochen später
+  lässt sich sonst nicht mehr klären.
+- Bei einem **gescheiterten** Chat erst, wenn sein Nachfolger fertig ist.
+- Nie löschen, solange offene Fragen aus seiner Meldung unbeantwortet sind.
+- Im Zweifel archivieren und das dem User sagen. Archivieren lässt sich
+  zurücknehmen, Löschen nicht — die Grenze dieses Skills verläuft bei
+  Umkehrbarkeit, und hier liegt sie besonders deutlich.
 
 ## Kernregeln
 
