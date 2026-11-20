@@ -6,7 +6,7 @@
 Aufgaben rein, Tickets raus, ein PR pro Ticket — und kein Nebenthema geht mehr verloren.
 
 [![Claude Code Plugin](https://img.shields.io/badge/Claude%20Code-Plugin-D97757)](https://code.claude.com/docs/en/plugins)
-[![Version](https://img.shields.io/badge/version-0.2.0-blue)](.claude-plugin/plugin.json)
+[![Version](https://img.shields.io/badge/version-0.3.0-blue)](.claude-plugin/plugin.json)
 [![Lizenz: MIT](https://img.shields.io/badge/Lizenz-MIT-green)](LICENSE)
 ![Sprache: Deutsch](https://img.shields.io/badge/Sprache-Deutsch-lightgrey)
 
