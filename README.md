@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="assets/logo.svg" width="112" height="112" alt="">
+
 # Scraude
 
 **Scrum für die Arbeit mit Claude Code.**
@@ -10,7 +12,7 @@ Aufgaben rein, Tickets raus, ein PR pro Ticket — und kein Nebenthema geht mehr
 [![Lizenz: MIT](https://img.shields.io/badge/Lizenz-MIT-green)](LICENSE)
 ![Sprache: Deutsch](https://img.shields.io/badge/Sprache-Deutsch-lightgrey)
 
-[Installation](#installation) · [Schnellstart](#schnellstart) · [So funktioniert's](#so-funktionierts) · [Befehle](#befehle) · [FAQ](#faq)
+[Installation](#installation) · [Schnellstart](#schnellstart) · [So funktioniert's](#so-funktionierts) · [Befehle](#befehle) · [Konfiguration](#konfiguration) · [FAQ](#faq)
 
 </div>
 
@@ -25,17 +27,20 @@ Aufgaben rein, Tickets raus, ein PR pro Ticket — und kein Nebenthema geht mehr
 
 ## Das Problem
 
-Wer länger mit Claude Code arbeitet, kennt das:
+Claude Code schreibt zuverlässig Code. Was fehlt, ist alles drumherum: der
+Überblick, der Zuschnitt, die Disziplin über mehrere Sessions hinweg.
 
-- Mitten in einer Aufgabe fällt etwas Zweites auf — und dann ein Drittes.
-  Entweder wird alles in einen Riesen-PR gepackt, oder es ist nach der
-  Session vergessen.
-- Jede neue Session beginnt bei null: Wo war ich? Was ist offen? Was
-  blockiert?
-- Ein Umbenennen in 40 Dateien läuft mit demselben großen Modell wie eine
-  knifflige Race Condition.
-- Der Diff landet ungefiltert beim Review, und der Review ist nur so gut wie
-  die Zeit, die man gerade hat.
+| | Ohne Board | Mit Scraude |
+|---|---|---|
+| **Nebenthema fällt auf** | landet im selben Riesen-PR oder ist nach der Session vergessen | wird als Backlog-Ticket notiert, ohne dich zu unterbrechen |
+| **Neue Session** | „Wo war ich? Was ist offen?" | der Board-Stand liegt beim Start im Kontext |
+| **Umbenennen in 40 Dateien** | dasselbe große Modell wie für eine Race Condition | mechanische Tickets laufen auf einem kleineren Modell |
+| **Review** | der rohe Diff, so gründlich wie die Zeit gerade reicht | ein zweiter Agent prüft vorher gegen die Ticket-Beschreibung |
+| **Scope** | wächst, bis der PR nicht mehr prüfbar ist | Tickets sind auf reviewbare Diffs geschnitten, Scope-Zuwachs wird gemeldet |
+
+Nichts davon ist ein Claude-Problem. Es ist das, was in einem Team sonst das
+Board erledigt — und genau das fehlt, wenn man allein mit einem Agenten
+arbeitet.
 
 ## Die Lösung
 
@@ -51,6 +56,7 @@ externes Tool, ohne Account, ohne Server:
 | 🧠 **Das passende Modell** | Jedes Ticket trägt eine Komplexität. Einfache Tickets übernimmt ein Subagent mit einem kleineren Modell, schwierige bleiben im Dialog mit dir. |
 | 🔍 **Vor-Review durch einen zweiten Agenten** | Bevor du den Diff siehst, prüft ein eigener Agent ihn gegen die Ticket-Beschreibung. Mechanisch Eindeutiges behebt er in einem eigenen Commit, den Rest meldet er dir. |
 | ☀️ **Standup bei Sessionbeginn** | Ein Hook legt den Board-Stand automatisch in den Kontext. Claude weiß sofort, wo es weitergeht. |
+| 🧵 **Mehrere Repos, frische Chats** | Ein Koordinator-Chat verteilt den Sprint auf je einen Chat pro Repo — pro Sprint neu gestartet, mit einem Briefing aus dem Board statt eines langen Verlaufs. |
 | ✅ **Du behältst die Kontrolle** | Claude merged nie selbst. PRs, Merges und das Schließen eines Sprints brauchen immer deine Freigabe. |
 
 ---
@@ -259,6 +265,63 @@ kein anderes Plugin denselben Namen belegt.
 Du musst diese Befehle nicht kennen. Sobald ein Board existiert, startet,
 pausiert und erfasst Claude Tickets von selbst. Die Befehle sind
 Einstiegspunkte und Ansichten.
+
+### Darunter: `board-store.js`
+
+Jede Zustandsänderung am Board hat einen benannten Befehl in einem
+deterministischen Node-Skript — kein Token wird dafür verbrannt. Claude ruft
+sie selbst auf; du brauchst sie nur, wenn du von Hand nachsehen oder etwas
+geradeziehen willst.
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/scripts/board-store.js" <befehl>
+```
+
+| Befehl | Zweck |
+|---|---|
+| `get-board` | das Board als JSON |
+| `create-ticket '<json>'` · `create-tickets '<json-array>'` | Tickets anlegen; mehrere auf einmal lösen Abhängigkeiten untereinander auf |
+| `update-ticket T-001 '<json>'` | Felder ändern |
+| `check-ready T-001` | Definition of Ready, mechanischer Teil |
+| `impact` | wie viele Tickets hängen an jedem — die Zahl hinter der Spike-Priorität |
+| `model-for [T-001]` | Modell und Effort für dieses Ticket |
+| `next-ticket` · `start-ticket` · `resume-ticket` | nächstes unblockiertes Ticket, starten, fortsetzen |
+| `review-ticket T-001 [<pr-url>]` · `finish-ticket T-001` | in den Review, nach dem Merge auf `done` |
+| `plan-sprint '["T-001"]'` · `close-sprint [--force]` · `retro [S-01]` | Sprint fixieren, schließen, Zahlen ansehen |
+
+Für Projekte mit mehreren Repos kommen vier dazu:
+
+| Befehl | Zweck |
+|---|---|
+| `config ['<json>']` | Einstellungen zeigen, mit Argument ändern |
+| `briefing <repo\|T-001 …> [--uebergabe]` | fertiges Briefing samt Modellempfehlung für einen frischen Repo-Chat |
+| `chats` | wer arbeitet woran, wie viele Plätze sind frei, was wartet |
+| `chat <id> <repo> '["T-001"]'` · `chat <id> limit\|fehler\|archiviert\|geloescht` | Chat eintragen, als gescheitert oder abgeschlossen vermerken |
+
+Ohne Argument aufgerufen listet das Skript alle Befehle auf.
+
+---
+
+## Konfiguration
+
+Alles Einstellbare steht im Board selbst, nicht im Plugin — eine Zeile
+bearbeiten statt ein Release abwarten.
+
+| Schlüssel | Vorgabe | Wofür |
+|---|---|---|
+| `modelle` | siehe Tabelle oben | Komplexität → Modell und Effort für Subagenten |
+| `config.repos` | `{}` | Repo-Name → `pfad`, `base_branch`, `merge_stil`, `schnittstellen` |
+| `config.maxParallelChats` | `2` | wie viele Repo-Chats gleichzeitig laufen dürfen |
+| `config.chatMessageLimit` | `400` | ab wann ein Chat sein Ticket abschließt und keins mehr beginnt |
+| `config.chatAbschluss` | `archivieren` | was mit einem fertigen Chat passiert; `loeschen` ist endgültig |
+| `config.chat_modelle` | Sonnet bis `mittel`, darüber `inherit` | Modellwahl für einen ganzen Repo-Chat |
+| `config.chat_sonnet_groessen` | `["XS","S"]` | bis zu welcher Größe `mittel` noch auf Sonnet läuft |
+| `config.koordinator_chat` | — | Session-ID, an die Repo-Chats melden |
+| `config.projektregeln` | `[]` | Zeilen aus CLAUDE.md, die in jedes Briefing gehören |
+
+```bash
+node scripts/board-store.js config '{"maxParallelChats": 3}'
+```
 
 ---
 

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="Scraude">
+  <title>Scraude</title>
+  <desc>Ein Board aus drei Spalten: wartend, in Arbeit, fertig — darunter der Sprint als ein Paket.</desc>
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#EC9169"/>
+      <stop offset="1" stop-color="#CB5733"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="256" height="256" rx="58" fill="url(#tile)"/>
+
+  <!-- Drei Spalten, zwei Reihen: Backlog, in Arbeit, fertig -->
+  <g fill="#FFF7F2">
+    <rect x="44" y="66" width="44" height="26" rx="9"/>
+    <rect x="44" y="106" width="44" height="26" rx="9"/>
+
+    <rect x="106" y="66" width="44" height="26" rx="9"/>
+    <rect x="106" y="106" width="44" height="26" rx="9" opacity="0.4"/>
+
+    <rect x="168" y="66" width="44" height="26" rx="9" opacity="0.4"/>
+  </g>
+
+  <!-- Die letzte Zelle ist kein Kärtchen mehr, sondern das Ergebnis -->
+  <path d="M172 120 l11 12 23 -26" fill="none" stroke="#FFF7F2" stroke-width="11"
+        stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Der Sprint als ein Paket: fertig und offen in einer Linie -->
+  <rect x="44" y="166" width="168" height="14" rx="7" fill="#FFF7F2" opacity="0.45"/>
+  <rect x="44" y="166" width="100" height="14" rx="7" fill="#FFF7F2"/>
+</svg>
