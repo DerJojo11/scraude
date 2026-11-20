@@ -1,5 +1,7 @@
 <div align="center">
 
+**Deutsch** · [English](README.en.md)
+
 <img src="assets/logo.svg" width="112" height="112" alt="">
 
 # Scraude
@@ -15,13 +17,6 @@ Aufgaben rein, Tickets raus, ein PR pro Ticket — und kein Nebenthema geht mehr
 [Installation](#installation) · [Schnellstart](#schnellstart) · [So funktioniert's](#so-funktionierts) · [Befehle](#befehle) · [Konfiguration](#konfiguration) · [FAQ](#faq)
 
 </div>
-
-> **English summary:** Scraude is a Claude Code plugin that turns a task into
-> a ticket board with sprints, one branch and one pull request per ticket.
-> It captures side topics as backlog tickets, routes simple tickets to
-> smaller models, and runs a second agent as a pre-review before you see the
-> diff. You approve every PR and every merge. The plugin talks to you in
-> German.
 
 ---
 
