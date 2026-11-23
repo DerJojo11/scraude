@@ -230,7 +230,8 @@ Befehl, mit dem der Chat den Board-Stand selbst liest.
   den Stand liest er aus `git status`, nicht aus dem verlorenen Verlauf.
   Uncommittete Arbeit wird nie verworfen.
 - Gemergte Tickets führen zum Archivieren ihres Chats, nach deiner
-  Bestätigung. Wenn du `config.chatAbschluss` auf `loeschen` stellst, wird er
+  Bestätigung. Mit `config.chatAbschlussSofort` passiert das ohne Rückfrage,
+  sobald alle Tickets eines Chats erledigt sind. Wenn du `config.chatAbschluss` auf `loeschen` stellst, wird er
   stattdessen gelöscht — endgültig, deshalb nicht der Standard.
 
 Durchgespielt an einem Beispiel mit zwei Repos:
@@ -309,6 +310,7 @@ bearbeiten statt ein Release abwarten.
 | `config.maxParallelChats` | `2` | wie viele Repo-Chats gleichzeitig laufen dürfen |
 | `config.chatMessageLimit` | `400` | ab wann ein Chat sein Ticket abschließt und keins mehr beginnt |
 | `config.chatAbschluss` | `archivieren` | was mit einem fertigen Chat passiert; `loeschen` ist endgültig |
+| `config.chatAbschlussSofort` | `false` | fertige Chats sofort und ohne Rückfrage archivieren (nie löschen) |
 | `config.chat_modelle` | Sonnet bis `mittel`, darüber `inherit` | Modellwahl für einen ganzen Repo-Chat |
 | `config.chat_sonnet_groessen` | `["XS","S"]` | bis zu welcher Größe `mittel` noch auf Sonnet läuft |
 | `config.koordinator_chat` | — | Session-ID, an die Repo-Chats melden |

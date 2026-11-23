@@ -60,7 +60,8 @@ Was nach außen wirkt oder schwer zurückzuholen ist:
 - **Sprint-Lock brechen**: nie eigenmächtig.
 - **Repo-Chats archivieren oder löschen**: ein archivierter Chat ist für den
   User weg, ein gelöschter unwiederbringlich. Außer er hat es für den Sprint
-  pauschal freigegeben.
+  pauschal freigegeben oder `config.chatAbschlussSofort` gesetzt (nur
+  Archivieren, siehe unten).
 
 Die Grenze verläuft nicht bei "wichtig", sondern bei **Umkehrbarkeit und
 Außenwirkung**. Ein Branch ist beides nicht — ein PR ist beides.
@@ -204,7 +205,22 @@ Was mit einem fertigen Chat passiert, steht in `config.chatAbschluss`:
 - **`loeschen`**: `delete_session`. Endgültig, auch für den User.
 
 Beides **braucht die Bestätigung des Users**, außer er hat sie für den
-Sprint pauschal erteilt. Danach `chat <session-id> archiviert` bzw.
+Sprint pauschal erteilt.
+
+**Sofort archivieren** (`config.chatAbschlussSofort: true`): Der User hat
+damit dauerhaft freigegeben, dass ein Repo-Chat geschlossen wird, sobald
+er fertig ist — nicht erst bei `/sprint-close`. Nach jedem Merge, der ein
+Ticket auf `done` setzt, und nach jeder Meldung eines Repo-Chats prüft der
+Koordinator `chats`. Steht ein Chat auf `archivierbar` (alle seine Tickets
+done), archiviert er ihn ohne Rückfrage, wenn
+
+- seine letzte Meldung keine offene Frage an den User enthält, und
+- kein PR aus diesem Chat mehr offen ist.
+
+Sonst bleibt er stehen, bis das geklärt ist. Dem User genügt eine Zeile,
+welcher Chat geschlossen wurde. Die Einstellung gilt **nur fürs
+Archivieren** — steht `chatAbschluss` auf `loeschen`, fragt der Koordinator
+trotzdem jedes Mal. Danach `chat <session-id> archiviert` bzw.
 `chat <session-id> geloescht`, damit der Sprint es festhält.
 `/sprint-close` listet die Kandidaten von selbst auf.
 
