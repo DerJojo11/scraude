@@ -121,7 +121,12 @@ const DEFAULT_CONFIG = {
   // Verlauf ist dann weg, auch wenn drei Wochen später im PR eine Frage
   // auftaucht, die nur dieser Chat beantworten konnte. Beides braucht die
   // Bestätigung des Users.
-  chatAbschluss: 'archivieren'
+  chatAbschluss: 'archivieren',
+  // true: ein Chat wird archiviert, sobald alle seine Tickets done sind —
+  // ohne Rückfrage und ohne auf /sprint-close zu warten. Die Freigabe dafür
+  // hat der User mit dem Setzen dieser Einstellung erteilt. Gilt nur für
+  // "archivieren": Löschen fragt immer, weil es nicht zurückzuholen ist.
+  chatAbschlussSofort: false
 };
 
 const EMPTY_BOARD = {
@@ -1486,6 +1491,18 @@ if (require.main === module) {
               `${c.archivierbar ? '  (archivierbar)' : ''}`
           );
         });
+        const cfgChats = boardConfig(readBoard());
+        const jetzt = u.chats.filter((c) => c.archivierbar);
+        if (
+          jetzt.length &&
+          cfgChats.chatAbschlussSofort &&
+          cfgChats.chatAbschluss !== 'loeschen'
+        ) {
+          console.log(
+            'config.chatAbschlussSofort: archivierbare Chats jetzt archivieren ' +
+              '(archive_session), danach "chat <id> archiviert".'
+          );
+        }
         const wartend = Object.entries(u.ohne_chat);
         if (wartend.length) {
           console.log('Ohne lebenden Chat:');

@@ -28,7 +28,8 @@ allowed-tools:
    sagt `config.chatAbschluss`: `archivieren` (Standard, `archive_session`)
    oder `loeschen` (`delete_session`, endgültig). Beides **erst nach
    Bestätigung des Users** — außer er hat sie für diesen Sprint pauschal
-   erteilt; beim Löschen zusätzlich nur, wenn der PR gemergt ist und keine
+   erteilt oder `config.chatAbschlussSofort` gesetzt (dann sind fertige
+   Chats meist schon archiviert, nur Archivieren); beim Löschen zusätzlich nur, wenn der PR gemergt ist und keine
    Frage aus der Meldung des Chats offen steht (siehe board-management).
    Danach je Chat `board-store.js chat <session-id> archiviert` bzw.
    `… geloescht`, damit der Sprint es festhält. Chats mit noch offenen PRs

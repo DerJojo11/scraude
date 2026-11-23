@@ -233,6 +233,8 @@ chat uses to read the board state itself.
   state from `git status`, not from the lost history. Uncommitted work is
   never discarded.
 - Merged tickets lead to their chat being archived, after your confirmation.
+  With `config.chatAbschlussSofort` this happens without asking, as soon as
+  all of a chat's tickets are done.
   Set `config.chatAbschluss` to `loeschen` and it gets deleted instead —
   permanently, which is why it isn't the default.
 
@@ -311,6 +313,7 @@ line instead of waiting for a release.
 | `config.maxParallelChats` | `2` | how many repo chats may run at once |
 | `config.chatMessageLimit` | `400` | when a chat finishes its ticket and starts no further one |
 | `config.chatAbschluss` | `archivieren` | what happens to a finished chat; `loeschen` is permanent |
+| `config.chatAbschlussSofort` | `false` | archive finished chats right away, without asking (never deletes) |
 | `config.chat_modelle` | Sonnet up to `mittel`, `inherit` above | model choice for a whole repo chat |
 | `config.chat_sonnet_groessen` | `["XS","S"]` | up to which size `mittel` still runs on Sonnet |
 | `config.koordinator_chat` | — | session ID the repo chats report to |
