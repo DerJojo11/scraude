@@ -38,5 +38,16 @@ Danach prüfen und **als Bullet-Liste** (Kernprinzip 11) mitteilen:
   Kernprinzip 4)? Falls nicht: kurz erwähnen, dass Scraude auf lokalen Merge
   nach Chat-Freigabe zurückfällt.
 
+- Hat das Projekt eine Oberfläche? Dann einmal anbieten, das Design-Fundament
+  einzutragen — danach fragt Scraude nie wieder danach:
+
+  ```bash
+  node "${CLAUDE_PLUGIN_ROOT}/scripts/board-store.js" config '{"design":{"tool":"penpot","datei":"<Link>","seite":"<Seite für Entwürfe>","fundament":["…"],"export_pfad":"docs/design/"}}'
+  ```
+
+  `fundament` sind die Zeilen, an die sich jedes Ticket hält (Token-Set,
+  Textstile, Komponenten). Will der User das nicht, bleibt `design.tool`
+  leer und Design kommt in Scraude schlicht nicht vor. Nicht drängen.
+
 Abschluss-Hinweis: nächster sinnvoller Schritt ist `/ticket-new "<Titel>"`
 oder `/sprint-plan`.

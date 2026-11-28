@@ -21,6 +21,13 @@ offenen Blocker). Den inhaltlichen Teil — ist die Beschreibung wirklich
 eigenständig verständlich? — beurteilst du selbst. Fehlt etwas: erst
 nachschärfen (ggf. mit dem User), nicht trotzdem starten.
 
+Meldet die Prüfung **"Design noch nicht abgestimmt"**, ist das kein Mangel
+am Ticket, sondern der nächste Schritt: Entwurf im Design-Tool anlegen, dem
+User als Bild zeigen, seine Anmerkungen ins Board schreiben, dann
+`update-ticket T-<id> '{"design":{"board":"<Seite / Board>","stand":"abgestimmt"}}'`.
+Erst danach weiter. Der Ablauf steht im Skill `board-management`, Abschnitt
+"Design".
+
 Dann:
 1. `node "${CLAUDE_PLUGIN_ROOT}/scripts/board-store.js" start-ticket T-<id>`
    Das erledigt in einem Schritt: laufendes Ticket auf `paused` setzen und

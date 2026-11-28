@@ -53,6 +53,11 @@ Commands (Kernprinzip 6). Für jedes Ticket:
   fremder Code erst verstanden werden? Gibt es Nebenläufigkeit, Zustand
   über Grenzen hinweg, Sicherheits- oder Datenverlustrisiko? Ist der
   richtige Weg von vornherein klar, oder muss man ihn suchen?
+- `design: true`, wenn `config.design.tool` gesetzt ist und das Ticket etwas
+  ändert, das ein Nutzer sieht. Solche Tickets lassen sich erst starten,
+  wenn der Entwurf im Design-Board abgestimmt ist — das ist gewollt und
+  steht im Skill `board-management`, Abschnitt "Design". Bei einem
+  Design-Dokument als Eingabe ist das eher die Regel als die Ausnahme.
 - `prioritaet`: kleinere Zahl = höher. **Die Zahl trägt Risiko und Wert,
   nicht die Reihenfolge** — die steckt schon vollständig in `blockiert_von`.
   Häufigster Fehler an dieser Stelle: die Vorschlagsliste ist nach

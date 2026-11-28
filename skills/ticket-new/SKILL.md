@@ -23,8 +23,13 @@ Der User hat folgenden Titel übergeben: $ARGUMENTS
    - `manuell` — über diesen Command angelegt (Default)
    - `passiv` — Nebenthema, still mitgeschrieben
    - `aktiv` — Nebenthema, das gemeldet wurde
-5. Aufrufen:
+5. `design`: Ist `config.design.tool` gesetzt und ändert das Ticket etwas,
+   das ein Nutzer sieht, `"design": true` mitgeben. Das Ticket lässt sich
+   dann erst starten, wenn der Entwurf abgestimmt ist — Details im Skill
+   `board-management`, Abschnitt "Design". Ohne Design-Tool im Projekt
+   entfällt der Punkt.
+6. Aufrufen:
    `node "${CLAUDE_PLUGIN_ROOT}/scripts/board-store.js" create-ticket '<json>'`
-   mit `title`, `beschreibung`, `typ`, `groesse`, ggf. `prioritaet`/`herkunft`.
-6. Bestätige kurz (ein bis zwei Bullet-Punkte, Kernprinzip 11): Ticket-ID und
+   mit `title`, `beschreibung`, `typ`, `groesse`, ggf. `prioritaet`/`herkunft`/`design`.
+7. Bestätige kurz (ein bis zwei Bullet-Punkte, Kernprinzip 11): Ticket-ID und
    grobe Einschätzung.

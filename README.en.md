@@ -57,6 +57,7 @@ no account, no server.
 | 🔍 **Pre-review by a second agent** | Before you see the diff, a separate agent checks it against the ticket description. It fixes the mechanically obvious in its own commit and reports the rest. |
 | ☀️ **Standup at session start** | A hook puts the board state into the context automatically. Claude knows where to pick up. |
 | 🧵 **Several repos, fresh chats** | A coordinator chat hands the sprint to one chat per repo — restarted each sprint, briefed from the board instead of a long history. |
+| 🎨 **Design before code** | When a ticket changes something visible, the draft is made on the design board and agreed with you first. The fixed foundation — colours, text styles, components — ships with every briefing. |
 | ✅ **You stay in control** | Claude never merges. PRs, merges and closing a sprint always need your approval. |
 
 ---
@@ -241,6 +242,39 @@ chat uses to read the board state itself.
 Walked through on a two-repo example (in German):
 [`examples/zwei-repos.md`](examples/zwei-repos.md).
 
+### Design before code
+
+Optional, and off by default. Design only enters Scraude once
+`config.design.tool` is set.
+
+The heart of it is `config.design.fundament`: the lines every ticket sticks
+to — which token set colours come from, which text styles exist, which
+components get used. They live in the board and ship with every briefing,
+including a repo chat with no access to the design tool. This isn't
+tidiness: a second orange and a second button radius take five minutes to
+create and are in every screen afterwards.
+
+A ticket that changes something visible gets `design: true`. That keeps it
+unstartable until the draft exists:
+
+```bash
+node scripts/board-store.js check-ready T-001
+# { "ready": false, "fehlt": ["Design noch nicht abgestimmt — design.board nicht gesetzt"] }
+```
+
+That's not a defect in the ticket, it's the order of things: a draft on the
+design board built from the existing components, shown to you as an image,
+your notes written back as comments on the board — and only then code.
+
+```bash
+node scripts/board-store.js update-ticket T-001 \
+  '{"design":{"board":"03 Screens / Login","stand":"abgestimmt"}}'
+```
+
+The review checks the result against the agreed draft and the foundation; if
+`config.design.export_pfad` is set, an image of it goes into the PR. A
+reviewer who has to open the design tool first won't review the design.
+
 ---
 
 ## Commands
@@ -318,6 +352,7 @@ line instead of waiting for a release.
 | `config.chat_sonnet_groessen` | `["XS","S"]` | up to which size `mittel` still runs on Sonnet |
 | `config.koordinator_chat` | — | session ID the repo chats report to |
 | `config.projektregeln` | `[]` | lines from CLAUDE.md that belong in every briefing |
+| `config.design` | `{tool: null, …}` | design tool, file, page, `fundament` (the rules that are not up for debate) and `export_pfad`. Without `tool`, design never comes up |
 
 ```bash
 node scripts/board-store.js config '{"maxParallelChats": 3}'

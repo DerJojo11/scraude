@@ -1,6 +1,6 @@
 {
   "name": "scraude",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "Scrum-artiges Ticket-Board für Claude Code: Sprint-Lock, passiv/aktiv Ticket-Erkennung, Pause/Resume, Definition of Ready/Done, echte PR-Erstellung.",
   "author": {
     "name": "Johannes Alecke",

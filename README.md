@@ -52,6 +52,7 @@ externes Tool, ohne Account, ohne Server:
 | 🔍 **Vor-Review durch einen zweiten Agenten** | Bevor du den Diff siehst, prüft ein eigener Agent ihn gegen die Ticket-Beschreibung. Mechanisch Eindeutiges behebt er in einem eigenen Commit, den Rest meldet er dir. |
 | ☀️ **Standup bei Sessionbeginn** | Ein Hook legt den Board-Stand automatisch in den Kontext. Claude weiß sofort, wo es weitergeht. |
 | 🧵 **Mehrere Repos, frische Chats** | Ein Koordinator-Chat verteilt den Sprint auf je einen Chat pro Repo — pro Sprint neu gestartet, mit einem Briefing aus dem Board statt eines langen Verlaufs. |
+| 🎨 **Design vor Code** | Ändert ein Ticket etwas Sichtbares, entsteht der Entwurf zuerst im Design-Board und wird mit dir abgestimmt. Das festgelegte Fundament — Farben, Textstile, Komponenten — liegt in jedem Briefing. |
 | ✅ **Du behältst die Kontrolle** | Claude merged nie selbst. PRs, Merges und das Schließen eines Sprints brauchen immer deine Freigabe. |
 
 ---
@@ -237,6 +238,39 @@ Befehl, mit dem der Chat den Board-Stand selbst liest.
 Durchgespielt an einem Beispiel mit zwei Repos:
 [`examples/zwei-repos.md`](examples/zwei-repos.md).
 
+### Design vor Code
+
+Optional und standardmäßig aus. Erst wenn `config.design.tool` gesetzt ist,
+kommt Design in Scraude überhaupt vor.
+
+Der Kern ist `config.design.fundament`: die Zeilen, an die sich jedes Ticket
+hält — aus welchem Token-Set Farben kommen, welche Textstile es gibt, welche
+Komponenten verwendet werden. Sie stehen im Board und landen in jedem
+Briefing, auch bei einem Repo-Chat ohne Zugang zum Design-Tool. Der Grund ist
+nicht Ordnungsliebe: ein zweites Orange und ein zweiter Button-Radius
+entstehen in fünf Minuten und sind danach in jedem Screen.
+
+Ein Ticket, das etwas Sichtbares ändert, bekommt `design: true`. Damit ist es
+so lange nicht startbar, bis der Entwurf steht:
+
+```bash
+node scripts/board-store.js check-ready T-001
+# { "ready": false, "fehlt": ["Design noch nicht abgestimmt — design.board nicht gesetzt"] }
+```
+
+Das ist kein Mangel am Ticket, sondern die Reihenfolge: Entwurf im
+Design-Board aus den vorhandenen Komponenten, als Bild in den Chat, deine
+Anmerkungen als Kommentare ins Board — und erst dann Code.
+
+```bash
+node scripts/board-store.js update-ticket T-001 \
+  '{"design":{"board":"03 Screens / Login","stand":"abgestimmt"}}'
+```
+
+Beim Review wird gegen den abgestimmten Stand und das Fundament geprüft; ist
+`config.design.export_pfad` gesetzt, wandert ein Bild davon mit in den PR.
+Ein Reviewer, der erst das Design-Tool öffnen muss, prüft das Design nicht.
+
 ---
 
 ## Befehle
@@ -315,6 +349,7 @@ bearbeiten statt ein Release abwarten.
 | `config.chat_sonnet_groessen` | `["XS","S"]` | bis zu welcher Größe `mittel` noch auf Sonnet läuft |
 | `config.koordinator_chat` | — | Session-ID, an die Repo-Chats melden |
 | `config.projektregeln` | `[]` | Zeilen aus CLAUDE.md, die in jedes Briefing gehören |
+| `config.design` | `{tool: null, …}` | Design-Tool, Datei, Seite, `fundament` (die festen Regeln) und `export_pfad`. Ohne `tool` kommt Design in Scraude nicht vor |
 
 ```bash
 node scripts/board-store.js config '{"maxParallelChats": 3}'

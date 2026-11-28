@@ -235,6 +235,66 @@ Beim Löschen zusätzlich:
   zurücknehmen, Löschen nicht — die Grenze dieses Skills verläuft bei
   Umkehrbarkeit, und hier liegt sie besonders deutlich.
 
+## Design
+
+Gilt nur, wenn `config.design.tool` gesetzt ist. Steht da nichts, kommt
+Design in Scraude nicht vor — kein Hinweis, keine Rückfrage.
+
+**Das Fundament ist keine Empfehlung.** In `config.design.fundament` stehen
+die Zeilen, die nicht zur Debatte stehen: aus welchem Token-Set Farben
+kommen, welche Textstile es gibt, welche Komponenten verwendet werden. Jedes
+Briefing trägt sie mit, damit ein Repo-Chat ohne Zugang zum Design-Tool
+trotzdem weiß, woran er sich hält. Der Grund ist nicht Ordnungsliebe: ein
+zweites Orange und ein zweiter Button-Radius entstehen in fünf Minuten und
+sind danach in jedem Screen, und niemand weiß mehr, welcher der richtige
+war.
+
+**Wann ein Ticket Design bekommt.** Ändert sich etwas, das ein Nutzer sieht
+— neuer Screen, neues Element, anderes Verhalten an der Oberfläche —, trägt
+das Ticket `design`. Reines Refactoring, Logik hinter der Oberfläche und
+Chores bekommen es nicht. Im Zweifel setzen: ein zu viel gesetztes Design
+kostet eine Rückfrage, ein fehlendes kostet die Umsetzung.
+
+Beim Anlegen reicht die Kurzform:
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/scripts/board-store.js" create-ticket '{"title":"…","design":true}'
+```
+
+**Erst abstimmen, dann bauen.** Ein Ticket mit `design.stand: "offen"` ist
+nicht ready — `check-ready` meldet das, und `/ticket-start` kommt nicht
+daran vorbei. Das ist kein Fehler im Ablauf, das *ist* der Ablauf: der
+Entwurf entsteht im Design-Tool, der User sieht ihn und sagt etwas dazu,
+und erst dann entsteht Code. Umgekehrt baut man zweimal.
+
+Was dazu passiert:
+
+1. Im Design-Tool auf der Seite aus `config.design.seite` einen Entwurf
+   anlegen — **aus den vorhandenen Komponenten**, nicht aus Rechtecken.
+   Fehlt ein Baustein wirklich, wird er als neue Komponente in die
+   Bibliothek aufgenommen, nicht als Einzelstück hingemalt.
+2. Dem User zeigen: Export als Bild in den Chat. Nicht beschreiben — ein
+   Entwurf, den man lesen muss, ist keiner.
+3. Was er dazu sagt, gehört als Kommentar an die Stelle im Board, auf die es
+   sich bezieht, nicht in den Chatverlauf. Der Chat ist nächste Woche weg,
+   das Board nicht.
+4. Steht der Entwurf:
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/scripts/board-store.js" update-ticket T-00x \
+  '{"design":{"board":"<Seite / Board>","stand":"abgestimmt"}}'
+```
+
+**Abweichen vom abgestimmten Stand** ist eine Rückfrage wert, keine
+stillschweigende Entscheidung — auch dann, wenn sich beim Bauen zeigt, dass
+der Entwurf technisch unbequem ist. Was sich ändert, ändert sich im Board
+zuerst.
+
+**Beim Review** gehört ein Bild des abgestimmten Stands in den PR, wenn
+`config.design.export_pfad` gesetzt ist. Ein Reviewer, der das Design-Tool
+öffnen muss, prüft das Design nicht.
+
+
 ## Kernregeln
 
 1. **Passiv/aktiv-Entscheidung** (Kernprinzip 2): Taucht während eines

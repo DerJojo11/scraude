@@ -60,6 +60,14 @@ Zusammenfassung, statt dass ihr das unter euch ausmacht.
   zu packen.
 - Bei `typ: "spike"` ersetzt "Erkenntnisse dokumentiert" das übliche
   Done-Kriterium — kein Code-Deliverable nötig.
+- Trägt das Ticket ein `design`: Stimmt das Gebaute mit dem überein, was im
+  Board abgestimmt wurde, und kommen Farben, Textstile und Komponenten aus
+  dem Fundament (`config.design.fundament`)? Eine Abweichung ist keine
+  Kleinigkeit, die man im PR erklärt — sie gehört vorher mit dem User
+  geklärt und, wenn sie bleibt, zuerst ins Board.
+  Ist `config.design.export_pfad` gesetzt: den abgestimmten Stand als Bild
+  dorthin exportieren und mitcommitten. Das Bild ist der Grund, warum ein
+  Reviewer das Design überhaupt beurteilen kann.
 
 ## 3. Review-Zusammenfassung (Kernprinzip 8 + 11) — als Bullet-Punkte, nie als
 Absatz, und *bevor* der User vor den Diff gesetzt wird:

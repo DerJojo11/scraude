@@ -97,6 +97,29 @@ const DEFAULT_CHAT_MODELLE = {
 const CHAT_SONNET_GROESSEN = ['XS', 'S'];
 
 /**
+ * Design-Fundament des Projekts. Liegt im Board, weil es pro Projekt anders
+ * aussieht — und weil jeder Repo-Chat es im Briefing mitbekommen muss, ohne
+ * den Koordinator zu fragen.
+ *
+ * `tool`/`datei`/`seite`: wo besprochen und abgelegt wird (z. B. Penpot).
+ *   `tool: null` heißt: kein Design-Tool im Projekt — dann verhält sich
+ *   Scraude wie vorher und fragt nie nach Design.
+ * `fundament`: die Zeilen, die nicht verhandelbar sind — Token-Set,
+ *   Textstile, Komponenten. Sie stehen hier als Text, damit ein Chat ohne
+ *   Design-Tool-Zugang trotzdem weiß, woran er sich zu halten hat.
+ * `export_pfad`: Ordner im Repo, in den der Review-Export wandert. Ein Bild
+ *   im PR ist der einzige Weg, auf dem ein Reviewer Design beurteilen kann,
+ *   ohne das Tool zu öffnen.
+ */
+const DEFAULT_DESIGN = {
+  tool: null,
+  datei: null,
+  seite: null,
+  fundament: [],
+  export_pfad: null
+};
+
+/**
  * Projektweite Einstellungen. Liegen im Board, nicht im Code: welche Repos
  * es gibt, ist pro Projekt anders, und wie viele Chats parallel laufen
  * dürfen, ist eine Kosten- und Nervenfrage.
@@ -126,7 +149,8 @@ const DEFAULT_CONFIG = {
   // ohne Rückfrage und ohne auf /sprint-close zu warten. Die Freigabe dafür
   // hat der User mit dem Setzen dieser Einstellung erteilt. Gilt nur für
   // "archivieren": Löschen fragt immer, weil es nicht zurückzuholen ist.
-  chatAbschlussSofort: false
+  chatAbschlussSofort: false,
+  design: DEFAULT_DESIGN
 };
 
 const EMPTY_BOARD = {
@@ -376,6 +400,8 @@ function createTicket(board, data) {
     // bleibt bei Einzel-Repo-Projekten einfach null.
     repo: data.repo || null,
     chat: data.chat || null,
+    // null = nichts Sichtbares. Sonst { board, stand } — siehe normalizeDesign.
+    design: normalizeDesign(data.design),
     ueberschneidet_mit: data.ueberschneidet_mit || [],
     blockiert_von: data.blockiert_von || [],
     erstellt_waehrend: data.erstellt_waehrend || null,
@@ -487,7 +513,11 @@ function modelFor(board, id) {
 
 function updateTicket(board, id, updates) {
   requireTicket(board, id);
-  board.tickets[id] = { ...board.tickets[id], ...updates };
+  const neu = { ...board.tickets[id], ...updates };
+  // Design kommt oft als Kurzform (`true`) oder halb gefüllt herein —
+  // einmal durch dieselbe Normalisierung wie beim Anlegen.
+  if (updates && 'design' in updates) neu.design = normalizeDesign(updates.design);
+  board.tickets[id] = neu;
   writeBoard(board);
   return board.tickets[id];
 }
@@ -509,6 +539,13 @@ function checkReady(board, id) {
   const blocker = openBlockers(board, id);
   if (blocker.length) {
     fehlt.push(`offene Blocker: ${blocker.join(', ')}`);
+  }
+  if (ticket.design && ticket.design.stand !== 'abgestimmt') {
+    fehlt.push(
+      ticket.design.board
+        ? `Design noch nicht abgestimmt (${ticket.design.board})`
+        : 'Design noch nicht abgestimmt — design.board nicht gesetzt'
+    );
   }
   return { id, ready: fehlt.length === 0, fehlt };
 }
@@ -614,13 +651,42 @@ function boardConfig(board) {
   cfg.chat_modelle = { ...DEFAULT_CHAT_MODELLE, ...(cfg.chat_modelle || {}) };
   cfg.repos = cfg.repos || {};
   cfg.projektregeln = cfg.projektregeln || [];
+  cfg.design = { ...DEFAULT_DESIGN, ...(cfg.design || {}) };
+  cfg.design.fundament = cfg.design.fundament || [];
   return cfg;
 }
 
 function setConfig(board, updates) {
-  board.config = { ...(board.config || {}), ...updates };
+  const vorher = board.config || {};
+  board.config = { ...vorher, ...updates };
+  // `design` ist das einzige verschachtelte Feld: ohne diesen Sonderfall
+  // würde `config '{"design":{"seite":"x"}}'` Datei und Fundament löschen.
+  if (updates && updates.design) {
+    board.config.design = { ...(vorher.design || {}), ...updates.design };
+  }
   writeBoard(board);
   return boardConfig(board);
+}
+
+/**
+ * Design-Angabe eines Tickets in eine feste Form bringen.
+ *
+ * `null` heißt: an diesem Ticket ist nichts Sichtbares zu entscheiden.
+ * `true` ist die Kurzform beim Anlegen — "hier gehört Design dazu, wo
+ * besprochen wird, steht noch nicht fest".
+ *
+ * `stand: "offen"` blockiert den Start (Definition of Ready). Das ist kein
+ * Fehler, sondern der Zeitpunkt: erst ist klar, wie es aussieht, dann wird
+ * gebaut. Umgekehrt entsteht genau der Code, den später niemand mehr
+ * anfassen will.
+ */
+function normalizeDesign(wert) {
+  if (!wert) return null;
+  if (wert === true) return { board: null, stand: 'offen' };
+  return {
+    board: wert.board || null,
+    stand: wert.stand === 'abgestimmt' ? 'abgestimmt' : 'offen'
+  };
 }
 
 /** Repo-Eintrag aus der Config, mit Defaults und klarer Fehlermeldung. */
@@ -785,6 +851,13 @@ function briefing(board, ids, { uebergabe = false } = {}) {
       .join(', ');
     z(`### ${id} — ${ticket.title} (${kopf}, Prio ${ticket.prioritaet})`);
     if (ticket.beschreibung) z(ticket.beschreibung.trim());
+    if (ticket.design) {
+      z(
+        ticket.design.stand === 'abgestimmt'
+          ? `Design abgestimmt: ${ticket.design.board || '(kein Board hinterlegt)'} — danach bauen, nicht daneben.`
+          : `Design offen${ticket.design.board ? ` (${ticket.design.board})` : ''} — erst abstimmen, dann bauen.`
+      );
+    }
     if ((ticket.blockiert_von || []).length) {
       z(`Blockiert von: ${ticket.blockiert_von.join(', ')}`);
     }
@@ -819,6 +892,33 @@ function briefing(board, ids, { uebergabe = false } = {}) {
   if (repo.schnittstellen.length) {
     z('## Vereinbarte Schnittstellen und Entscheidungen');
     repo.schnittstellen.forEach((s) => z(`- ${s}`));
+    z();
+  }
+
+  if (cfg.design.tool) {
+    const mitDesign = tickets.filter(({ ticket }) => ticket.design);
+    z('## Design');
+    z(`Tool: ${cfg.design.tool}${cfg.design.datei ? ` · ${cfg.design.datei}` : ''}`);
+    if (cfg.design.seite) z(`Besprochen wird auf: ${cfg.design.seite}`);
+    if (cfg.design.fundament.length) {
+      z('Festgelegt — nicht neu erfinden, sondern verwenden:');
+      cfg.design.fundament.forEach((f) => z(`- ${f}`));
+    } else {
+      z('- (config.design.fundament ist leer — Tokens, Textstile und');
+      z('  Komponenten dort eintragen, sonst hat der Chat nichts, woran er');
+      z('  sich halten kann)');
+    }
+    if (mitDesign.length) {
+      z(`Betroffen: ${mitDesign.map(({ id }) => id).join(', ')}.`);
+      z('Ein offenes Design wird erst mit dem User im Board besprochen, dann');
+      z('gebaut — nicht umgekehrt.');
+      if (cfg.design.export_pfad) {
+        z(`Export des abgestimmten Stands beim Review nach: ${cfg.design.export_pfad}`);
+      }
+    } else {
+      z('Kein Ticket in diesem Chat ändert Sichtbares. Kommt doch etwas auf:');
+      z('melden statt selbst entscheiden.');
+    }
     z();
   }
 
@@ -1203,6 +1303,7 @@ module.exports = {
   DEFAULT_MODELLE,
   DEFAULT_CHAT_MODELLE,
   DEFAULT_CONFIG,
+  DEFAULT_DESIGN,
   CHAT_SONNET_GROESSEN,
   KOMPLEXITAETEN,
   boardExists,
@@ -1220,6 +1321,7 @@ module.exports = {
   createTicket,
   createTickets,
   updateTicket,
+  normalizeDesign,
   checkReady,
   modelFor,
   nextTicket,
